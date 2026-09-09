@@ -23,202 +23,531 @@ let currentSession = "morning";
 let currentIndex = 0;
 
 let completed = JSON.parse(
-    localStorage.getItem("completed") || "{}"
+localStorage.getItem("completed") || "{}"
 );
 
+// ===============================
+// SAVE DATA
+// ===============================
+
 function save() {
-    localStorage.setItem("currentDay", currentDay);
-    localStorage.setItem("completed", JSON.stringify(completed));
+localStorage.setItem("currentDay", currentDay);
+localStorage.setItem(
+"completed",
+JSON.stringify(completed)
+);
 }
+
+// ===============================
+// OPEN SESSION
+// ===============================
 
 function openSession(type) {
-    currentSession = type;
-    currentIndex = 0;
 
-    document.getElementById("homeScreen").classList.add("hidden");
-    document.getElementById("completeScreen").classList.add("hidden");
-    document.getElementById("sessionScreen").classList.remove("hidden");
+```
+currentSession = type;
+currentIndex = 0;
 
-    showAffirmation();
+document
+    .getElementById("homeScreen")
+    .classList.add("hidden");
+
+document
+    .getElementById("completeScreen")
+    .classList.add("hidden");
+
+document
+    .getElementById("sessionScreen")
+    .classList.remove("hidden");
+
+showAffirmation();
+```
+
 }
+
+// ===============================
+// SHOW AFFIRMATION
+// ===============================
 
 function showAffirmation() {
-    document.getElementById("sessionDay").textContent =
-        "Day " + currentDay;
 
-    document.getElementById("sessionType").textContent =
-        currentSession === "morning"
-            ? "☀️ Morning"
-            : "🌙 Night";
+```
+document.getElementById("sessionDay").textContent =
+    "Day " + currentDay;
 
-    document.getElementById("affirmationNumber").textContent =
-        currentIndex + 1;
+document.getElementById("sessionType").textContent =
+    currentSession === "morning"
+        ? "☀️ Morning"
+        : "🌙 Night";
 
-    document.getElementById("affirmationText").textContent =
-        affirmations[currentIndex];
+document.getElementById("affirmationNumber").textContent =
+    currentIndex + 1;
 
-    document.getElementById("sessionProgressText").textContent =
-        (currentIndex + 1) + " / 17";
+document.getElementById("affirmationText").textContent =
+    affirmations[currentIndex];
 
-    document.getElementById("sessionProgress").style.width =
-        ((currentIndex + 1) / 17 * 100) + "%";
+document.getElementById("sessionProgressText").textContent =
+    (currentIndex + 1) + " / 17";
+
+document.getElementById("sessionProgress").style.width =
+    ((currentIndex + 1) / 17 * 100) + "%";
+```
+
 }
+
+// ===============================
+// MARK AFFIRMATION DONE
+// ===============================
 
 function markDone() {
-    const key = currentDay + "-" + currentSession;
 
-    if (!completed[key]) {
-        completed[key] = [];
-    }
+```
+const key =
+    currentDay + "-" + currentSession;
 
-    if (!completed[key].includes(currentIndex)) {
-        completed[key].push(currentIndex);
-    }
-
-    save();
-
-    if (currentIndex < 16) {
-        currentIndex++;
-        showAffirmation();
-    } else {
-        finishSession();
-    }
+if (!completed[key]) {
+    completed[key] = [];
 }
+
+if (!completed[key].includes(currentIndex)) {
+
+    completed[key].push(currentIndex);
+
+}
+
+save();
+
+
+// Next affirmation
+if (currentIndex < 16) {
+
+    currentIndex++;
+
+    showAffirmation();
+
+} else {
+
+    finishSession();
+
+}
+```
+
+}
+
+// ===============================
+// NEXT
+// ===============================
 
 function nextAffirmation() {
-    if (currentIndex < 16) {
-        currentIndex++;
-        showAffirmation();
-    }
+
+```
+if (currentIndex < 16) {
+
+    currentIndex++;
+
+    showAffirmation();
+
 }
+```
+
+}
+
+// ===============================
+// PREVIOUS
+// ===============================
 
 function previousAffirmation() {
-    if (currentIndex > 0) {
-        currentIndex--;
-        showAffirmation();
+
+```
+if (currentIndex > 0) {
+
+    currentIndex--;
+
+    showAffirmation();
+
+}
+```
+
+}
+
+// ===============================
+// CHECK DAY COMPLETE
+// ===============================
+
+function isDayComplete(day) {
+
+```
+const morning =
+    completed[day + "-morning"];
+
+const night =
+    completed[day + "-night"];
+
+return (
+    morning &&
+    morning.length === 17 &&
+    night &&
+    night.length === 17
+);
+```
+
+}
+
+// ===============================
+// CALCULATE STREAK
+// ===============================
+
+function calculateStreak() {
+
+```
+let streak = 0;
+
+for (let d = 1; d <= 21; d++) {
+
+    if (isDayComplete(d)) {
+
+        streak++;
+
+    } else {
+
+        break;
+
     }
 }
 
+return streak;
+```
+
+}
+
+// ===============================
+// FINISH SESSION
+// ===============================
+
 function finishSession() {
-    const key = currentDay + "-" + currentSession;
 
-    completed[key] = [];
+```
+const key =
+    currentDay + "-" + currentSession;
 
-    for (let i = 0; i < 17; i++) {
-        completed[key].push(i);
+
+// Mark all 17 complete
+completed[key] = [];
+
+for (let i = 0; i < 17; i++) {
+
+    completed[key].push(i);
+
+}
+
+save();
+
+
+// Hide session
+document
+    .getElementById("sessionScreen")
+    .classList.add("hidden");
+
+
+// Show complete screen
+document
+    .getElementById("completeScreen")
+    .classList.remove("hidden");
+
+
+// Morning complete
+if (currentSession === "morning") {
+
+    document.getElementById("completeTitle").textContent =
+        "☀️ Morning Complete!";
+
+    document.getElementById("completeMessage").textContent =
+        "Morning Session ပြီးပါပြီ။ ယနေ့ Night Session ကို ဆက်လုပ်ပါ။";
+
+    return;
+}
+
+
+// Night complete
+if (currentSession === "night") {
+
+    const streak =
+        calculateStreak();
+
+
+    // Day 21 complete
+    if (currentDay === 21) {
+
+        document.getElementById("completeTitle").textContent =
+            "🏆 21-Day Journey Complete!";
+
+        document.getElementById("completeMessage").textContent =
+            "ဂုဏ်ယူပါတယ်! 21 ရက်လုံး Morning + Night ကို ပြီးမြောက်ခဲ့ပါပြီ။ 🔥 Streak: " +
+            streak +
+            " Days";
+
+        return;
     }
+
+
+    // Normal day complete
+    document.getElementById("completeTitle").textContent =
+        "🌙 Night Complete!";
+
+    document.getElementById("completeMessage").textContent =
+        "Day " +
+        currentDay +
+        " ပြီးပါပြီ! 🔥 Streak: " +
+        streak +
+        " Days";
+}
+```
+
+}
+
+// ===============================
+// CONTINUE
+// ===============================
+
+function continueAfterComplete() {
+
+```
+// Morning complete
+if (currentSession === "morning") {
+
+    // Go directly to Night
+    openSession("night");
+
+    return;
+}
+
+
+// Night complete
+if (currentSession === "night") {
+
+    // Day 21
+    if (currentDay === 21) {
+
+        goHome();
+
+        return;
+    }
+
+
+    // Next day
+    currentDay++;
+
+    currentSession = "morning";
+
+    currentIndex = 0;
 
     save();
 
-    document.getElementById("sessionScreen")
-        .classList.add("hidden");
+    goHome();
 
-    document.getElementById("completeScreen")
-        .classList.remove("hidden");
-
-    document.getElementById("completeTitle").textContent =
-        currentSession === "morning"
-            ? "☀️ Morning Complete!"
-            : "🌙 Night Complete!";
-
-    document.getElementById("completeMessage").textContent =
-        "ဒီ Session ကို အောင်မြင်စွာ ပြီးဆုံးပါပြီ။";
+    return;
 }
+```
+
+}
+
+// ===============================
+// GO HOME
+// ===============================
 
 function goHome() {
-    document.getElementById("sessionScreen")
-        .classList.add("hidden");
 
-    document.getElementById("completeScreen")
-        .classList.add("hidden");
+```
+document
+    .getElementById("sessionScreen")
+    .classList.add("hidden");
 
-    document.getElementById("homeScreen")
-        .classList.remove("hidden");
+document
+    .getElementById("completeScreen")
+    .classList.add("hidden");
 
-    updateHome();
+document
+    .getElementById("homeScreen")
+    .classList.remove("hidden");
+
+updateHome();
+```
+
 }
+
+// ===============================
+// RESET
+// ===============================
 
 function resetAll() {
-    if (confirm("အားလုံး Reset လုပ်မလား?")) {
-        localStorage.clear();
 
-        currentDay = 1;
-        completed = {};
+```
+if (
+    confirm(
+        "အားလုံး Reset လုပ်မလား?"
+    )
+) {
 
-        updateHome();
-        goHome();
-    }
+    localStorage.clear();
+
+    currentDay = 1;
+
+    currentSession = "morning";
+
+    currentIndex = 0;
+
+    completed = {};
+
+    updateHome();
+
+    goHome();
 }
+```
+
+}
+
+// ===============================
+// UPDATE HOME
+// ===============================
 
 function updateHome() {
-    document.getElementById("dayTitle").textContent =
-        "Day " + currentDay;
 
-    const morningKey = currentDay + "-morning";
-    const nightKey = currentDay + "-night";
+```
+document.getElementById("dayTitle").textContent =
+    "Day " + currentDay;
 
-    const morningCount =
-        completed[morningKey]
-            ? completed[morningKey].length
-            : 0;
 
-    const nightCount =
-        completed[nightKey]
-            ? completed[nightKey].length
-            : 0;
+const morningKey =
+    currentDay + "-morning";
 
-    document.getElementById("morningStatus").textContent =
-        morningCount + " / 17 completed";
+const nightKey =
+    currentDay + "-night";
 
-    document.getElementById("nightStatus").textContent =
-        nightCount + " / 17 completed";
 
-    let completedDays = 0;
+const morningCount =
+    completed[morningKey]
+        ? completed[morningKey].length
+        : 0;
 
-    for (let d = 1; d <= 21; d++) {
-        const m = completed[d + "-morning"];
-        const n = completed[d + "-night"];
+const nightCount =
+    completed[nightKey]
+        ? completed[nightKey].length
+        : 0;
 
-        if (
-            m &&
-            m.length === 17 &&
-            n &&
-            n.length === 17
-        ) {
-            completedDays++;
-        }
+
+document.getElementById("morningStatus").textContent =
+    morningCount +
+    " / 17 completed";
+
+
+document.getElementById("nightStatus").textContent =
+    nightCount +
+    " / 17 completed";
+
+
+// ===============================
+// COMPLETED DAYS
+// ===============================
+
+let completedDays = 0;
+
+for (let d = 1; d <= 21; d++) {
+
+    if (isDayComplete(d)) {
+
+        completedDays++;
+
     }
-
-    document.getElementById("overallText").textContent =
-        Math.round(completedDays / 21 * 100) +
-        "% Completed";
-
-    document.getElementById("overallProgress").style.width =
-        (completedDays / 21 * 100) + "%";
-
-    document.getElementById("streakNumber").textContent =
-        completedDays;
-
-    createDays();
 }
+
+
+// ===============================
+// OVERALL PROGRESS
+// ===============================
+
+const percentage =
+    Math.round(
+        completedDays / 21 * 100
+    );
+
+
+document.getElementById("overallText").textContent =
+    percentage +
+    "% Completed";
+
+
+document.getElementById("overallProgress").style.width =
+    percentage + "%";
+
+
+// ===============================
+// TRUE STREAK
+// ===============================
+
+const streak =
+    calculateStreak();
+
+
+document.getElementById("streakNumber").textContent =
+    streak;
+
+
+createDays();
+```
+
+}
+
+// ===============================
+// CREATE 21 DAYS
+// ===============================
 
 function createDays() {
-    const grid = document.getElementById("daysGrid");
 
-    grid.innerHTML = "";
+```
+const grid =
+    document.getElementById("daysGrid");
 
-    for (let i = 1; i <= 21; i++) {
-        const day = document.createElement("div");
+grid.innerHTML = "";
 
-        day.className = "day";
-        day.textContent = "Day " + i;
 
-        if (i === currentDay) {
-            day.classList.add("active");
-        }
+for (let i = 1; i <= 21; i++) {
 
-        grid.appendChild(day);
+    const day =
+        document.createElement("div");
+
+    day.className = "day";
+
+    day.textContent =
+        "Day " + i;
+
+
+    // Current day
+    if (i === currentDay) {
+
+        day.classList.add("active");
+
     }
+
+
+    // Completed day
+    if (isDayComplete(i)) {
+
+        day.classList.add("completed");
+
+        day.textContent =
+            "✓ Day " + i;
+
+    }
+
+
+    grid.appendChild(day);
 }
+```
+
+}
+
+// ===============================
+// INITIALIZE APP
+// ===============================
 
 updateHome();
