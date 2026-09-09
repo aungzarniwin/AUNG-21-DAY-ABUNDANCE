@@ -1,0 +1,427 @@
+```css
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Noto Sans Myanmar",
+    "Myanmar Text",
+    sans-serif;
+
+  background: #f7f5ff;
+  color: #222;
+  min-height: 100vh;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.app {
+  max-width: 600px;
+  margin: auto;
+  padding: 16px;
+  padding-bottom: 40px;
+}
+
+
+/* HEADER */
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0 20px;
+}
+
+.brand {
+  font-size: 23px;
+  font-weight: 800;
+  color: #6d28d9;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: #777;
+  margin-top: 3px;
+}
+
+.reset-btn {
+  border: none;
+  background: #eee;
+  color: #555;
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+
+
+/* HERO */
+
+.hero-card {
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  color: white;
+  padding: 25px;
+  border-radius: 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 10px 30px rgba(124, 58, 237, .2);
+}
+
+.hero-small {
+  font-size: 12px;
+  opacity: .8;
+  letter-spacing: 1px;
+}
+
+.hero-card h1 {
+  font-size: 38px;
+  margin: 5px 0 20px;
+}
+
+.progress-container {
+  width: 100%;
+  height: 9px;
+  background: rgba(255,255,255,.25);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  background: white;
+  border-radius: 20px;
+  transition: width .3s ease;
+}
+
+.progress-text {
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+
+/* SESSION CARDS */
+
+.session-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  background: white;
+  padding: 18px;
+  border-radius: 20px;
+
+  margin-bottom: 12px;
+
+  box-shadow: 0 4px 15px rgba(0,0,0,.05);
+}
+
+.session-icon {
+  font-size: 32px;
+}
+
+.session-info {
+  flex: 1;
+}
+
+.session-info h2 {
+  font-size: 19px;
+}
+
+.session-info p {
+  font-size: 13px;
+  color: #777;
+  margin-top: 4px;
+}
+
+.continue-btn {
+  border: none;
+  background: #7c3aed;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+
+/* STREAK */
+
+.streak-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+
+  background: #fff7ed;
+
+  border-radius: 20px;
+  padding: 18px;
+
+  margin-top: 16px;
+}
+
+.streak-number {
+  font-size: 36px;
+  font-weight: 800;
+  color: #ea580c;
+}
+
+.streak-card p {
+  color: #888;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+
+/* DAYS */
+
+.days-section {
+  margin-top: 28px;
+}
+
+.days-section h2 {
+  margin-bottom: 14px;
+}
+
+.days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.day-box {
+  border: none;
+  background: white;
+  border-radius: 12px;
+  padding: 12px 4px;
+  font-weight: 700;
+  box-shadow: 0 3px 10px rgba(0,0,0,.04);
+}
+
+.day-box.completed {
+  background: #7c3aed;
+  color: white;
+}
+
+.day-box.current {
+  border: 2px solid #7c3aed;
+}
+
+.day-box.locked {
+  opacity: .4;
+}
+
+
+/* SESSION SCREEN */
+
+.hidden {
+  display: none !important;
+}
+
+.session-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+
+  margin-bottom: 20px;
+}
+
+.back-btn {
+  border: none;
+  background: white;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 16px;
+}
+
+.session-header strong {
+  display: block;
+  margin-top: 3px;
+}
+
+.session-progress {
+  margin-bottom: 25px;
+}
+
+.session-progress .progress-container {
+  background: #ddd;
+}
+
+.session-progress .progress-bar {
+  background: #7c3aed;
+}
+
+#sessionProgressText {
+  font-size: 13px;
+  color: #777;
+  margin-top: 6px;
+  text-align: right;
+}
+
+
+/* AFFIRMATION */
+
+.affirmation-card {
+  background: white;
+  border-radius: 25px;
+  padding: 25px;
+
+  min-height: 430px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  box-shadow: 0 8px 30px rgba(0,0,0,.06);
+}
+
+.affirmation-number {
+  width: 45px;
+  height: 45px;
+
+  border-radius: 50%;
+
+  background: #ede9fe;
+  color: #6d28d9;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-weight: 800;
+  margin-bottom: 25px;
+}
+
+.affirmation-text {
+  font-size: 20px;
+  line-height: 1.9;
+  text-align: center;
+
+  flex: 1;
+
+  display: flex;
+  align-items: center;
+}
+
+.done-button {
+  width: 100%;
+
+  border: none;
+  background: #7c3aed;
+  color: white;
+
+  padding: 16px;
+  border-radius: 15px;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  margin-top: 25px;
+}
+
+.done-button.completed {
+  background: #16a34a;
+}
+
+
+/* NAVIGATION */
+
+.navigation-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.nav-btn {
+  flex: 1;
+
+  border: none;
+  background: white;
+
+  padding: 14px;
+
+  border-radius: 14px;
+
+  font-weight: 600;
+}
+
+.nav-btn.primary {
+  background: #7c3aed;
+  color: white;
+}
+
+
+/* COMPLETE */
+
+.complete-card {
+  background: white;
+
+  border-radius: 28px;
+
+  padding: 45px 25px;
+
+  text-align: center;
+
+  margin-top: 60px;
+
+  box-shadow: 0 10px 35px rgba(0,0,0,.08);
+}
+
+.trophy {
+  font-size: 70px;
+  margin-bottom: 20px;
+}
+
+.complete-card h1 {
+  color: #6d28d9;
+  margin-bottom: 12px;
+}
+
+.complete-card p {
+  color: #777;
+  line-height: 1.7;
+}
+
+.complete-button {
+  margin-top: 25px;
+
+  width: 100%;
+
+  border: none;
+
+  background: #7c3aed;
+  color: white;
+
+  padding: 16px;
+
+  border-radius: 15px;
+
+  font-weight: 700;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 380px) {
+
+  .app {
+    padding: 12px;
+  }
+
+  .affirmation-text {
+    font-size: 18px;
+  }
+
+  .days-grid {
+    gap: 5px;
+  }
+
+  .day-box {
+    padding: 10px 2px;
+  }
+}
+```
