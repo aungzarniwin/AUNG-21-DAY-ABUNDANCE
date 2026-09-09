@@ -1,0 +1,200 @@
+```html
+<!DOCTYPE html>
+<html lang="my">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#7c3aed">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Aung 21 Day">
+
+  <title>Aung 21-Day Abundance</title>
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <div class="app">
+
+    <!-- HEADER -->
+    <header class="header">
+      <div>
+        <div class="brand">🌟 Aung 21-Day</div>
+        <div class="subtitle">Abundance Journey</div>
+      </div>
+
+      <button class="reset-btn" onclick="resetAll()">
+        Reset
+      </button>
+    </header>
+
+
+    <!-- HOME -->
+    <main id="homeScreen">
+
+      <section class="hero-card">
+        <div class="hero-small">YOUR 21-DAY JOURNEY</div>
+
+        <h1 id="dayTitle">Day 1</h1>
+
+        <div class="progress-container">
+          <div id="overallProgress" class="progress-bar"></div>
+        </div>
+
+        <div class="progress-text" id="overallText">
+          0% Completed
+        </div>
+      </section>
+
+
+      <!-- MORNING -->
+      <section class="session-card morning-card">
+
+        <div class="session-icon">☀️</div>
+
+        <div class="session-info">
+          <h2>Morning</h2>
+          <p id="morningStatus">0 / 17 completed</p>
+        </div>
+
+        <button class="continue-btn" onclick="openSession('morning')">
+          Start
+        </button>
+
+      </section>
+
+
+      <!-- NIGHT -->
+      <section class="session-card night-card">
+
+        <div class="session-icon">🌙</div>
+
+        <div class="session-info">
+          <h2>Night</h2>
+          <p id="nightStatus">0 / 17 completed</p>
+        </div>
+
+        <button class="continue-btn" onclick="openSession('night')">
+          Start
+        </button>
+
+      </section>
+
+
+      <!-- STREAK -->
+      <section class="streak-card">
+        <div class="streak-number" id="streakNumber">0</div>
+        <div>
+          <strong>🔥 Day Streak</strong>
+          <p>Keep going every day!</p>
+        </div>
+      </section>
+
+
+      <!-- DAY NAVIGATION -->
+      <section class="days-section">
+
+        <h2>21-Day Journey</h2>
+
+        <div id="daysGrid" class="days-grid"></div>
+
+      </section>
+
+    </main>
+
+
+    <!-- SESSION SCREEN -->
+    <main id="sessionScreen" class="hidden">
+
+      <div class="session-header">
+
+        <button onclick="goHome()" class="back-btn">
+          ← Back
+        </button>
+
+        <div>
+          <div id="sessionDay">Day 1</div>
+          <strong id="sessionType">☀️ Morning</strong>
+        </div>
+
+      </div>
+
+
+      <div class="session-progress">
+
+        <div class="progress-container">
+          <div id="sessionProgress" class="progress-bar"></div>
+        </div>
+
+        <div id="sessionProgressText">
+          0 / 17
+        </div>
+
+      </div>
+
+
+      <section class="affirmation-card">
+
+        <div class="affirmation-number" id="affirmationNumber">
+          1
+        </div>
+
+        <div id="affirmationText" class="affirmation-text">
+        </div>
+
+        <button id="doneButton" class="done-button" onclick="markDone()">
+          ✓ ဖတ်ပြီးပါပြီ
+        </button>
+
+      </section>
+
+
+      <div class="navigation-buttons">
+
+        <button onclick="previousAffirmation()" class="nav-btn">
+          ← Previous
+        </button>
+
+        <button onclick="nextAffirmation()" class="nav-btn primary">
+          Next →
+        </button>
+
+      </div>
+
+    </main>
+
+
+    <!-- COMPLETE SCREEN -->
+    <main id="completeScreen" class="hidden">
+
+      <div class="complete-card">
+
+        <div class="trophy">🏆</div>
+
+        <h1 id="completeTitle">
+          Day Complete!
+        </h1>
+
+        <p id="completeMessage">
+          Today's Morning & Night practice is complete.
+        </p>
+
+        <button class="complete-button" onclick="goHome()">
+          Continue
+        </button>
+
+      </div>
+
+    </main>
+
+  </div>
+
+
+  <script src="app.js"></script>
+
+</body>
+</html>
+```
