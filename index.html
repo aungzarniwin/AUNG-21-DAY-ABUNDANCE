@@ -1,9 +1,9 @@
-```html
 <!DOCTYPE html>
 <html lang="my">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
   <meta name="theme-color" content="#7c3aed">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -17,184 +17,595 @@
 
 <body>
 
-  <div class="app">
+<div class="app">
 
-    <!-- HEADER -->
-    <header class="header">
+  <!-- ================= HEADER ================= -->
+
+  <header class="header">
+
+    <div class="brand-area">
+      <div class="brand-icon">✦</div>
+
       <div>
-        <div class="brand">🌟 Aung 21-Day</div>
+        <div class="brand">Aung 21-Day</div>
         <div class="subtitle">Abundance Journey</div>
       </div>
+    </div>
 
-      <button class="reset-btn" onclick="resetAll()">
-        Reset
+    <button class="reset-btn" onclick="resetAll()">
+      Reset
+    </button>
+
+  </header>
+
+
+  <!-- ================= HOME SCREEN ================= -->
+
+  <main id="homeScreen">
+
+    <!-- HERO -->
+
+    <section class="hero-card">
+
+      <div class="hero-top">
+
+        <div>
+          <div class="hero-small">YOUR ABUNDANCE JOURNEY</div>
+
+          <h1 id="dayTitle">Day 1</h1>
+
+          <p class="hero-description">
+            Build your daily abundance practice
+          </p>
+        </div>
+
+        <div class="hero-badge">
+          <span>21</span>
+          <small>DAYS</small>
+        </div>
+
+      </div>
+
+
+      <div class="progress-container hero-progress">
+        <div id="overallProgress" class="progress-bar"></div>
+      </div>
+
+      <div class="progress-row">
+
+        <div>
+          <strong id="overallText">0%</strong>
+          <span>Overall Complete</span>
+        </div>
+
+        <div>
+          <strong id="completedDaysText">0 / 21</strong>
+          <span>Days Complete</span>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- STATS -->
+
+    <section class="stats-grid">
+
+      <div class="stat-card">
+
+        <div class="stat-icon purple">🔥</div>
+
+        <div>
+          <strong id="streakNumber">0</strong>
+          <span>Day Streak</span>
+        </div>
+
+      </div>
+
+
+      <div class="stat-card">
+
+        <div class="stat-icon green">✓</div>
+
+        <div>
+          <strong id="totalCompletedText">0</strong>
+          <span>Practices Done</span>
+        </div>
+
+      </div>
+
+
+      <div class="stat-card">
+
+        <div class="stat-icon orange">🎯</div>
+
+        <div>
+          <strong id="todayPercent">0%</strong>
+          <span>Today's Progress</span>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- TODAY -->
+
+    <section class="section-heading">
+
+      <div>
+        <span class="eyebrow">TODAY'S PRACTICE</span>
+        <h2>Daily Practice</h2>
+      </div>
+
+      <span id="todayDate" class="date-label"></span>
+
+    </section>
+
+
+    <!-- MORNING -->
+
+    <section class="session-card morning-card">
+
+      <div class="session-icon">☀️</div>
+
+      <div class="session-info">
+
+        <div class="session-label">MORNING PRACTICE</div>
+
+        <h2>Morning</h2>
+
+        <p id="morningStatus">0 / 17 completed</p>
+
+        <div class="mini-progress">
+          <div id="morningProgress"></div>
+        </div>
+
+      </div>
+
+      <button
+        id="morningButton"
+        class="continue-btn"
+        onclick="openSession('morning')"
+      >
+        Start
       </button>
-    </header>
+
+    </section>
 
 
-    <!-- HOME -->
-    <main id="homeScreen">
+    <!-- NIGHT -->
 
-      <section class="hero-card">
-        <div class="hero-small">YOUR 21-DAY JOURNEY</div>
+    <section class="session-card night-card">
 
-        <h1 id="dayTitle">Day 1</h1>
+      <div class="session-icon">🌙</div>
 
-        <div class="progress-container">
-          <div id="overallProgress" class="progress-bar"></div>
+      <div class="session-info">
+
+        <div class="session-label">NIGHT PRACTICE</div>
+
+        <h2>Night</h2>
+
+        <p id="nightStatus">0 / 17 completed</p>
+
+        <div class="mini-progress">
+          <div id="nightProgress"></div>
         </div>
 
-        <div class="progress-text" id="overallText">
-          0% Completed
-        </div>
-      </section>
+      </div>
+
+      <button
+        id="nightButton"
+        class="continue-btn"
+        onclick="openSession('night')"
+      >
+        Start
+      </button>
+
+    </section>
 
 
-      <!-- MORNING -->
-      <section class="session-card morning-card">
+    <!-- DAILY JOURNAL -->
 
-        <div class="session-icon">☀️</div>
+    <section class="journal-card">
 
-        <div class="session-info">
-          <h2>Morning</h2>
-          <p id="morningStatus">0 / 17 completed</p>
-        </div>
+      <div class="journal-header">
 
-        <button class="continue-btn" onclick="openSession('morning')">
-          Start
-        </button>
-
-      </section>
-
-
-      <!-- NIGHT -->
-      <section class="session-card night-card">
-
-        <div class="session-icon">🌙</div>
-
-        <div class="session-info">
-          <h2>Night</h2>
-          <p id="nightStatus">0 / 17 completed</p>
-        </div>
-
-        <button class="continue-btn" onclick="openSession('night')">
-          Start
-        </button>
-
-      </section>
-
-
-      <!-- STREAK -->
-      <section class="streak-card">
-        <div class="streak-number" id="streakNumber">0</div>
-        <div>
-          <strong>🔥 Day Streak</strong>
-          <p>Keep going every day!</p>
-        </div>
-      </section>
-
-
-      <!-- DAY NAVIGATION -->
-      <section class="days-section">
-
-        <h2>21-Day Journey</h2>
-
-        <div id="daysGrid" class="days-grid"></div>
-
-      </section>
-
-    </main>
-
-
-    <!-- SESSION SCREEN -->
-    <main id="sessionScreen" class="hidden">
-
-      <div class="session-header">
-
-        <button onclick="goHome()" class="back-btn">
-          ← Back
-        </button>
+        <div class="journal-icon">📝</div>
 
         <div>
-          <div id="sessionDay">Day 1</div>
-          <strong id="sessionType">☀️ Morning</strong>
+          <div class="eyebrow">DAILY JOURNAL</div>
+          <h2>Today's Mindset</h2>
         </div>
 
       </div>
 
 
-      <div class="session-progress">
+      <label for="intentionInput">
+        🎯 Daily Intention
+      </label>
 
-        <div class="progress-container">
-          <div id="sessionProgress" class="progress-bar"></div>
-        </div>
+      <textarea
+        id="intentionInput"
+        class="journal-input"
+        placeholder="ဒီနေ့ ဘာကို အာရုံစိုက်မလဲ..."
+        oninput="saveJournal()"
+      ></textarea>
 
-        <div id="sessionProgressText">
-          0 / 17
+
+      <label for="actionInput">
+        💰 Abundance Action
+      </label>
+
+      <textarea
+        id="actionInput"
+        class="journal-input"
+        placeholder="ဒီနေ့ abundance တိုးလာစေဖို့ ဘာလုပ်မလဲ..."
+        oninput="saveJournal()"
+      ></textarea>
+
+
+      <div class="journal-save-status" id="journalSaveStatus">
+        Auto saved
+      </div>
+
+    </section>
+
+
+    <!-- GRATITUDE -->
+
+    <section class="journal-card gratitude-card">
+
+      <div class="journal-header">
+
+        <div class="journal-icon">🙏</div>
+
+        <div>
+          <div class="eyebrow">GRATITUDE</div>
+          <h2>3 Things I'm Grateful For</h2>
         </div>
 
       </div>
 
 
-      <section class="affirmation-card">
+      <input
+        id="gratitude1"
+        class="journal-input compact"
+        placeholder="1. ဒီနေ့ ကျေးဇူးတင်မိတာ..."
+        oninput="saveJournal()"
+      >
 
-        <div class="affirmation-number" id="affirmationNumber">
+      <input
+        id="gratitude2"
+        class="journal-input compact"
+        placeholder="2. ဒီနေ့ ကျေးဇူးတင်မိတာ..."
+        oninput="saveJournal()"
+      >
+
+      <input
+        id="gratitude3"
+        class="journal-input compact"
+        placeholder="3. ဒီနေ့ ကျေးဇူးတင်မိတာ..."
+        oninput="saveJournal()"
+      >
+
+    </section>
+
+
+    <!-- REFLECTION -->
+
+    <section class="journal-card">
+
+      <div class="journal-header">
+
+        <div class="journal-icon">💭</div>
+
+        <div>
+          <div class="eyebrow">REFLECTION</div>
+          <h2>Today's Reflection</h2>
+        </div>
+
+      </div>
+
+      <textarea
+        id="reflectionInput"
+        class="journal-input reflection-input"
+        placeholder="ဒီနေ့ ဘာတွေသိလာသလဲ၊ ဘာတွေကောင်းခဲ့သလဲ..."
+        oninput="saveJournal()"
+      ></textarea>
+
+    </section>
+
+
+    <!-- JOURNEY -->
+
+    <section class="journey-section">
+
+      <div class="section-heading">
+
+        <div>
+          <span class="eyebrow">21 DAY PROGRAM</span>
+          <h2>Your Journey</h2>
+        </div>
+
+      </div>
+
+      <div id="daysGrid" class="days-grid"></div>
+
+    </section>
+
+  </main>
+
+
+  <!-- ================= SESSION SCREEN ================= -->
+
+  <main id="sessionScreen" class="hidden">
+
+    <div class="session-header">
+
+      <button onclick="goHome()" class="back-btn">
+        ← Back
+      </button>
+
+      <div class="session-heading-center">
+
+        <div id="sessionDay">
+          Day 1
+        </div>
+
+        <strong id="sessionType">
+          ☀️ Morning
+        </strong>
+
+      </div>
+
+      <div class="session-counter" id="sessionCounter">
+        1 / 17
+      </div>
+
+    </div>
+
+
+    <div class="session-progress">
+
+      <div class="progress-container">
+
+        <div
+          id="sessionProgress"
+          class="progress-bar"
+        ></div>
+
+      </div>
+
+      <div id="sessionProgressText">
+        0 / 17 completed
+      </div>
+
+    </div>
+
+
+    <!-- AFFIRMATION -->
+
+    <section class="affirmation-card">
+
+      <div class="affirmation-top">
+
+        <span class="affirmation-label">
+          AFFIRMATION
+        </span>
+
+        <div
+          class="affirmation-number"
+          id="affirmationNumber"
+        >
           1
         </div>
 
-        <div id="affirmationText" class="affirmation-text">
+      </div>
+
+
+      <div
+        id="affirmationText"
+        class="affirmation-text"
+      ></div>
+
+
+      <div class="affirmation-divider"></div>
+
+
+      <button
+        id="doneButton"
+        class="done-button"
+        onclick="markDone()"
+      >
+        ✓ ဖတ်ပြီးပါပြီ
+      </button>
+
+    </section>
+
+
+    <!-- SESSION TIPS -->
+
+    <section class="practice-tip">
+
+      <span>💡</span>
+
+      <div>
+        <strong>Practice Tip</strong>
+
+        <p>
+          စိတ်အေးအေးထားပြီး စာသားကို ဖြည်းဖြည်းဖတ်ပါ
+        </p>
+      </div>
+
+    </section>
+
+
+    <!-- NAVIGATION -->
+
+    <div class="navigation-buttons">
+
+      <button
+        onclick="previousAffirmation()"
+        class="nav-btn"
+        id="previousButton"
+      >
+        ← Previous
+      </button>
+
+      <button
+        onclick="nextAffirmation()"
+        class="nav-btn primary"
+        id="nextButton"
+      >
+        Next →
+      </button>
+
+    </div>
+
+
+    <button
+      onclick="finishSession()"
+      class="finish-session-button"
+    >
+      Complete Session
+    </button>
+
+  </main>
+
+
+  <!-- ================= COMPLETE SCREEN ================= -->
+
+  <main id="completeScreen" class="hidden">
+
+    <div class="complete-card">
+
+      <div class="complete-glow"></div>
+
+      <div class="trophy">
+        🏆
+      </div>
+
+      <div class="eyebrow">
+        PRACTICE COMPLETE
+      </div>
+
+      <h1 id="completeTitle">
+        Morning Complete
+      </h1>
+
+      <p id="completeMessage">
+        Great work. Keep building your daily practice
+      </p>
+
+
+      <div class="complete-stats">
+
+        <div>
+          <strong id="completeDayNumber">
+            Day 1
+          </strong>
+
+          <span>Current Day</span>
         </div>
 
-        <button id="doneButton" class="done-button" onclick="markDone()">
-          ✓ ဖတ်ပြီးပါပြီ
-        </button>
 
-      </section>
+        <div>
+          <strong id="completeStreak">
+            1
+          </strong>
 
-
-      <div class="navigation-buttons">
-
-        <button onclick="previousAffirmation()" class="nav-btn">
-          ← Previous
-        </button>
-
-        <button onclick="nextAffirmation()" class="nav-btn primary">
-          Next →
-        </button>
+          <span>Day Streak</span>
+        </div>
 
       </div>
 
-    </main>
+
+      <button
+        class="complete-button"
+        onclick="continueAfterComplete()"
+      >
+        Continue →
+      </button>
 
 
-    <!-- COMPLETE SCREEN -->
-    <main id="completeScreen" class="hidden">
+      <button
+        class="secondary-button"
+        onclick="goHome()"
+      >
+        Back to Dashboard
+      </button>
 
-      <div class="complete-card">
+    </div>
 
-        <div class="trophy">🏆</div>
+  </main>
 
-        <h1 id="completeTitle">
-          Day Complete!
-        </h1>
 
-        <p id="completeMessage">
-          Today's Morning & Night practice is complete.
-        </p>
+  <!-- ================= CERTIFICATE ================= -->
 
-        <button class="complete-button" onclick="goHome()">
-  Continue
-</button>
+  <main id="certificateScreen" class="hidden">
+
+    <div class="certificate-card">
+
+      <div class="certificate-stars">
+        ✦ ✦ ✦
+      </div>
+
+      <div class="certificate-logo">
+        🌟
+      </div>
+
+      <div class="eyebrow">
+        21-DAY JOURNEY
+      </div>
+
+      <h1>
+        Journey Complete
+      </h1>
+
+      <p class="certificate-subtitle">
+        Congratulations on completing your 21-Day Abundance Journey
+      </p>
+
+
+      <div class="certificate-name">
+        Aung Zar Ni Win
+      </div>
+
+
+      <div class="certificate-line"></div>
+
+
+      <div class="certificate-date" id="certificateDate">
+        Completed
+      </div>
+
+
+      <div class="certificate-badges">
+
+        <span>✓ 21 Days</span>
+        <span>✓ Morning</span>
+        <span>✓ Night</span>
 
       </div>
 
-    </main>
 
-  </div>
+      <button
+        class="complete-button"
+        onclick="goHome()"
+      >
+        Return to Dashboard
+      </button>
+
+    </div>
+
+  </main>
+
+</div>
 
 
-  <script src="app.js"></script>
+<script src="app.js"></script>
 
 </body>
 </html>
-```
