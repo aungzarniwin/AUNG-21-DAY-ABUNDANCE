@@ -1,6 +1,17 @@
 /* =========================================================
    AUNG 21-DAY ABUNDANCE
-   V2 PROFESSIONAL JOURNEY APP
+   V2.1 PROFESSIONAL JOURNEY APP
+   ---------------------------------------------------------
+   21 Days
+   Morning + Night
+   17 Affirmations
+   LocalStorage
+   Journal
+   Gratitude
+   Reflection
+   Streak
+   Certificate
+   No 369 functionality
 ========================================================= */
 
 
@@ -9,13 +20,12 @@
 ========================================================= */
 
 const TOTAL_DAYS = 21;
-
 const TOTAL_AFFIRMATIONS = 17;
 
 const STORAGE_KEY = "aung21_abundance_v2";
-
 const OLD_COMPLETED_KEY = "completed";
 
+const SESSION_TYPES = ["morning", "night"];
 
 
 /* =========================================================
@@ -61,19 +71,35 @@ const affirmations = [
 ];
 
 
-
 /* =========================================================
-   STATE
+   RUNTIME STATE
 ========================================================= */
 
 let currentDay = 1;
-
 let currentSession = "morning";
-
 let currentIndex = 0;
 
 let appData = createDefaultData();
 
+let navigationTimer = null;
+
+
+/* =========================================================
+   DEFAULT JOURNAL
+========================================================= */
+
+function createEmptyJournal() {
+
+  return {
+    intention: "",
+    action: "",
+    gratitude1: "",
+    gratitude2: "",
+    gratitude3: "",
+    reflection: ""
+  };
+
+}
 
 
 /* =========================================================
@@ -84,7 +110,7 @@ function createDefaultData() {
 
   return {
 
-    version: 2,
+    version: 2.1,
 
     currentDay: 1,
 
@@ -101,16 +127,78 @@ function createDefaultData() {
 }
 
 
+/* =========================================================
+   NORMALIZE DATA
+========================================================= */
+
+function normalizeData(data) {
+
+  const defaults = createDefaultData();
+
+  if (
+    !data ||
+    typeof data !== "object" ||
+    Array.isArray(data)
+  ) {
+
+    return defaults;
+
+  }
+
+  const normalized = {
+
+    ...defaults,
+
+    ...data,
+
+    completed:
+      data.completed &&
+      typeof data.completed === "object" &&
+      !Array.isArray(data.completed)
+        ? data.completed
+        : {},
+
+    journal:
+      data.journal &&
+      typeof data.journal === "object" &&
+      !Array.isArray(data.journal)
+        ? data.journal
+        : {}
+
+  };
+
+  let day =
+    Number(normalized.currentDay);
+
+  if (
+    !Number.isFinite(day) ||
+    day < 1 ||
+    day > TOTAL_DAYS
+  ) {
+
+    day = 1;
+
+  }
+
+  normalized.currentDay = day;
+
+  normalized.version = 2.1;
+
+  return normalized;
+
+}
+
 
 /* =========================================================
-   SAFE STORAGE
+   SAFE STORAGE - LOAD
 ========================================================= */
 
 function loadData() {
 
   try {
 
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw =
+      localStorage.getItem(STORAGE_KEY);
 
     if (!raw) {
 
@@ -118,21 +206,10 @@ function loadData() {
 
     }
 
-    const parsed = JSON.parse(raw);
+    const parsed =
+      JSON.parse(raw);
 
-    if (!parsed || typeof parsed !== "object") {
-
-      return createDefaultData();
-
-    }
-
-    return {
-
-      ...createDefaultData(),
-
-      ...parsed
-
-    };
+    return normalizeData(parsed);
 
   } catch (error) {
 
@@ -148,15 +225,23 @@ function loadData() {
 }
 
 
+/* =========================================================
+   SAFE STORAGE - SAVE
+========================================================= */
 
 function saveData() {
 
   try {
 
+    appData =
+      normalizeData(appData);
+
     localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify(appData)
     );
+
+    return true;
 
   } catch (error) {
 
@@ -165,58 +250,81 @@ function saveData() {
       error
     );
 
+    return false;
+
   }
 
 }
-
 
 
 /* =========================================================
    SESSION KEY
 ========================================================= */
 
-function getSessionKey(
-  day,
-  type
-) {
+function getSessionKey(day, type) {
 
-  return `${day}_${type}`;
+  const safeDay =
+    Number(day);
+
+  const safeType =
+    type === "night"
+      ? "night"
+      : "morning";
+
+  return `${safeDay}_${safeType}`;
 
 }
 
 
-
 /* =========================================================
-   GET COMPLETED ARRAY
+   GET COMPLETED
 ========================================================= */
 
-function getCompleted(
-  day,
-  type
-) {
+function getCompleted(day, type) {
 
-  const key = getSessionKey(
-    day,
-    type
-  );
+  const key =
+    getSessionKey(
+      day,
+      type
+    );
 
   if (
     !appData.completed ||
-    !Array.isArray(appData.completed[key])
+    !Array.isArray(
+      appData.completed[key]
+    )
   ) {
 
     return [];
 
   }
 
-  return appData.completed[key];
+  /*
+    Remove invalid indexes
+    and duplicate values
+  */
+
+  const clean =
+    [...new Set(
+      appData.completed[key]
+        .map(Number)
+        .filter(
+          index =>
+            Number.isInteger(index) &&
+            index >= 0 &&
+            index < TOTAL_AFFIRMATIONS
+        )
+    )].sort(
+      (a, b) => a - b
+    );
+
+  return clean;
 
 }
 
 
-
 /* =========================================================
-   IS DONE
+   IS AFFIRMATION DONE
 ========================================================= */
 
 function isAffirmationDone(
@@ -233,9 +341,8 @@ function isAffirmationDone(
 }
 
 
-
 /* =========================================================
-   MARK SINGLE DONE
+   MARK AFFIRMATION DONE
 ========================================================= */
 
 function markAffirmationDone(
@@ -244,29 +351,79 @@ function markAffirmationDone(
   index
 ) {
 
-  const key = getSessionKey(
-    day,
-    type
-  );
-
-  if (!Array.isArray(appData.completed[key])) {
-
-    appData.completed[key] = [];
-
-  }
-
   if (
-    !appData.completed[key].includes(index)
+    index < 0 ||
+    index >= TOTAL_AFFIRMATIONS
   ) {
 
-    appData.completed[key].push(index);
+    return false;
 
   }
+
+  const key =
+    getSessionKey(
+      day,
+      type
+    );
+
+  const completed =
+    getCompleted(
+      day,
+      type
+    );
+
+  if (
+    !completed.includes(index)
+  ) {
+
+    completed.push(index);
+
+    completed.sort(
+      (a, b) => a - b
+    );
+
+  }
+
+  if (!appData.completed) {
+
+    appData.completed = {};
+
+  }
+
+  appData.completed[key] =
+    completed;
+
+  saveData();
+
+  return true;
+
+}
+
+
+/* =========================================================
+   MARK ENTIRE SESSION COMPLETE
+========================================================= */
+
+function markSessionComplete(
+  day,
+  type
+) {
+
+  const key =
+    getSessionKey(
+      day,
+      type
+    );
+
+  appData.completed[key] =
+    Array.from(
+      { length: TOTAL_AFFIRMATIONS },
+      (_, index) => index
+    );
 
   saveData();
 
 }
-
 
 
 /* =========================================================
@@ -279,12 +436,14 @@ function isSessionComplete(
 ) {
 
   return (
-    getCompleted(day, type).length >=
+    getCompleted(
+      day,
+      type
+    ).length ===
     TOTAL_AFFIRMATIONS
   );
 
 }
-
 
 
 /* =========================================================
@@ -294,12 +453,57 @@ function isSessionComplete(
 function isDayComplete(day) {
 
   return (
-    isSessionComplete(day, "morning") &&
-    isSessionComplete(day, "night")
+    isSessionComplete(
+      day,
+      "morning"
+    ) &&
+    isSessionComplete(
+      day,
+      "night"
+    )
   );
 
 }
 
+
+/* =========================================================
+   FIND FIRST UNFINISHED
+========================================================= */
+
+function findFirstUnfinished(
+  day,
+  type
+) {
+
+  const completed =
+    getCompleted(
+      day,
+      type
+    );
+
+  for (
+    let i = 0;
+    i < TOTAL_AFFIRMATIONS;
+    i++
+  ) {
+
+    if (!completed.includes(i)) {
+
+      return i;
+
+    }
+
+  }
+
+  /*
+    Fully completed session
+    opens at first affirmation
+    for review
+  */
+
+  return 0;
+
+}
 
 
 /* =========================================================
@@ -308,7 +512,17 @@ function isDayComplete(day) {
 
 function openSession(type) {
 
-  currentSession = type;
+  if (
+    type !== "morning" &&
+    type !== "night"
+  ) {
+
+    type = "morning";
+
+  }
+
+  currentSession =
+    type;
 
   currentDay =
     Number(
@@ -322,55 +536,25 @@ function openSession(type) {
 
     currentDay = 1;
 
+    appData.currentDay = 1;
+
+    saveData();
+
   }
 
-  const completed =
-    getCompleted(
+  currentIndex =
+    findFirstUnfinished(
       currentDay,
       currentSession
     );
 
-
-  /*
-    Resume from first unfinished item
-  */
-
-  let firstUnfinished = 0;
-
-  for (
-    let i = 0;
-    i < TOTAL_AFFIRMATIONS;
-    i++
-  ) {
-
-    if (!completed.includes(i)) {
-
-      firstUnfinished = i;
-
-      break;
-
-    }
-
-    if (
-      i ===
-      TOTAL_AFFIRMATIONS - 1
-    ) {
-
-      firstUnfinished = 0;
-
-    }
-
-  }
-
-  currentIndex = firstUnfinished;
-
-
-  showScreen("sessionScreen");
+  showScreen(
+    "sessionScreen"
+  );
 
   showAffirmation();
 
 }
-
 
 
 /* =========================================================
@@ -419,35 +603,57 @@ function showAffirmation() {
       "nextButton"
     );
 
-
   if (!textElement) {
 
     return;
 
   }
 
+  /*
+    Safety
+  */
+
+  if (
+    currentIndex < 0 ||
+    currentIndex >= TOTAL_AFFIRMATIONS
+  ) {
+
+    currentIndex = 0;
+
+  }
 
   textElement.textContent =
-    affirmations[currentIndex];
+    affirmations[currentIndex] || "";
 
+  if (numberElement) {
 
-  numberElement.textContent =
-    currentIndex + 1;
+    numberElement.textContent =
+      currentIndex + 1;
 
+  }
 
-  sessionDayElement.textContent =
-    `Day ${currentDay}`;
+  if (sessionDayElement) {
 
+    sessionDayElement.textContent =
+      `Day ${currentDay}`;
 
-  sessionTypeElement.textContent =
-    currentSession === "morning"
-      ? "☀️ Morning"
-      : "🌙 Night";
+  }
 
+  if (sessionTypeElement) {
 
-  counterElement.textContent =
-    `${currentIndex + 1} / ${TOTAL_AFFIRMATIONS}`;
+    sessionTypeElement.textContent =
+      currentSession === "morning"
+        ? "☀️ Morning"
+        : "🌙 Night";
 
+  }
+
+  if (counterElement) {
+
+    counterElement.textContent =
+      `${currentIndex + 1} / ${TOTAL_AFFIRMATIONS}`;
+
+  }
 
   const done =
     isAffirmationDone(
@@ -456,41 +662,48 @@ function showAffirmation() {
       currentIndex
     );
 
+  if (doneButton) {
 
-  if (done) {
+    if (done) {
 
-    doneButton.textContent =
-      "✓ Completed";
+      doneButton.textContent =
+        "✓ Completed";
 
-    doneButton.classList.add(
-      "completed"
-    );
+      doneButton.classList.add(
+        "completed"
+      );
 
-  } else {
+    } else {
 
-    doneButton.textContent =
-      "✓ ဖတ်ပြီးပါပြီ";
+      doneButton.textContent =
+        "✓ ဖတ်ပြီးပါပြီ";
 
-    doneButton.classList.remove(
-      "completed"
-    );
+      doneButton.classList.remove(
+        "completed"
+      );
+
+    }
 
   }
 
+  if (previousButton) {
 
-  previousButton.disabled =
-    currentIndex === 0;
+    previousButton.disabled =
+      currentIndex === 0;
 
+  }
 
-  nextButton.disabled =
-    currentIndex ===
-    TOTAL_AFFIRMATIONS - 1;
+  if (nextButton) {
 
+    nextButton.disabled =
+      currentIndex ===
+      TOTAL_AFFIRMATIONS - 1;
+
+  }
 
   updateSessionProgress();
 
 }
-
 
 
 /* =========================================================
@@ -499,6 +712,20 @@ function showAffirmation() {
 
 function markDone() {
 
+  /*
+    Prevent accidental repeated execution
+  */
+
+  if (navigationTimer) {
+
+    clearTimeout(
+      navigationTimer
+    );
+
+    navigationTimer = null;
+
+  }
+
   markAffirmationDone(
     currentDay,
     currentSession,
@@ -506,7 +733,6 @@ function markDone() {
   );
 
   updateSessionProgress();
-
   updateHome();
 
   const button =
@@ -525,9 +751,8 @@ function markDone() {
 
   }
 
-
   /*
-    Small automatic movement
+    Automatically move to next
   */
 
   if (
@@ -535,43 +760,48 @@ function markDone() {
     TOTAL_AFFIRMATIONS - 1
   ) {
 
-    setTimeout(() => {
+    navigationTimer =
+      setTimeout(() => {
 
-      currentIndex++;
+        navigationTimer = null;
 
-      showAffirmation();
+        currentIndex++;
 
-    }, 180);
+        showAffirmation();
 
-  } else {
+      }, 180);
 
-    /*
-      Last affirmation
-    */
+    return;
 
-    setTimeout(() => {
+  }
 
-      if (
-        isSessionComplete(
-          currentDay,
-          currentSession
-        )
-      ) {
+  /*
+    Last affirmation
+  */
+
+  if (
+    isSessionComplete(
+      currentDay,
+      currentSession
+    )
+  ) {
+
+    navigationTimer =
+      setTimeout(() => {
+
+        navigationTimer = null;
 
         finishSession();
 
-      }
-
-    }, 250);
+      }, 250);
 
   }
 
 }
 
 
-
 /* =========================================================
-   NEXT
+   NEXT AFFIRMATION
 ========================================================= */
 
 function nextAffirmation() {
@@ -584,11 +814,6 @@ function nextAffirmation() {
     return;
 
   }
-
-  /*
-    Automatically mark current
-    as completed when moving forward
-  */
 
   markAffirmationDone(
     currentDay,
@@ -605,9 +830,8 @@ function nextAffirmation() {
 }
 
 
-
 /* =========================================================
-   PREVIOUS
+   PREVIOUS AFFIRMATION
 ========================================================= */
 
 function previousAffirmation() {
@@ -625,38 +849,30 @@ function previousAffirmation() {
 }
 
 
-
 /* =========================================================
    FINISH SESSION
 ========================================================= */
 
 function finishSession() {
 
-  for (
-    let i = 0;
-    i < TOTAL_AFFIRMATIONS;
-    i++
-  ) {
+  markSessionComplete(
+    currentDay,
+    currentSession
+  );
 
-    markAffirmationDone(
-      currentDay,
-      currentSession,
-      i
-    );
-
-  }
-
+  currentIndex = 0;
 
   saveData();
+
+  updateHome();
 
   showCompleteScreen();
 
 }
 
 
-
 /* =========================================================
-   SHOW COMPLETE
+   SHOW COMPLETE SCREEN
 ========================================================= */
 
 function showCompleteScreen() {
@@ -681,46 +897,90 @@ function showCompleteScreen() {
       "completeStreak"
     );
 
+  const dayComplete =
+    isDayComplete(
+      currentDay
+    );
 
-  if (
+  const journeyComplete =
     currentDay === TOTAL_DAYS &&
-    currentSession === "night"
+    dayComplete;
+
+  if (journeyComplete) {
+
+    if (title) {
+
+      title.textContent =
+        "🏆 21-Day Journey Complete";
+
+    }
+
+    if (message) {
+
+      message.textContent =
+        "You have completed your full 21-Day Abundance Journey";
+
+    }
+
+  } else if (
+    currentSession === "morning"
   ) {
 
-    title.textContent =
-      "🏆 21-Day Journey Complete";
+    if (title) {
 
-    message.textContent =
-      "You have completed your full 21-Day Abundance Journey";
+      title.textContent =
+        "☀️ Morning Complete";
+
+    }
+
+    if (message) {
+
+      message.textContent =
+        dayComplete
+          ? "Today's Morning and Night practices are complete"
+          : "Morning practice completed. Continue with your Night practice";
+
+    }
 
   } else {
 
-    title.textContent =
-      currentSession === "morning"
-        ? "☀️ Morning Complete"
-        : "🌙 Night Complete";
+    if (title) {
 
+      title.textContent =
+        "🌙 Night Complete";
 
-    message.textContent =
-      currentSession === "morning"
-        ? "Morning practice completed. Continue with your Night practice"
-        : "Night practice completed. Your daily practice is complete";
+    }
+
+    if (message) {
+
+      message.textContent =
+        dayComplete
+          ? "Today's complete practice is finished"
+          : "Night practice completed. Your daily practice is complete";
+
+    }
 
   }
 
+  if (dayNumber) {
 
-  dayNumber.textContent =
-    `Day ${currentDay}`;
+    dayNumber.textContent =
+      `Day ${currentDay}`;
 
+  }
 
-  streak.textContent =
-    calculateStreak();
+  if (streak) {
 
+    streak.textContent =
+      calculateStreak();
 
-  showScreen("completeScreen");
+  }
+
+  showScreen(
+    "completeScreen"
+  );
 
 }
-
 
 
 /* =========================================================
@@ -730,20 +990,25 @@ function showCompleteScreen() {
 function continueAfterComplete() {
 
   /*
-    Morning → Night
+    MORNING → NIGHT
   */
 
   if (
     currentSession === "morning"
   ) {
 
-    currentSession = "night";
+    currentSession =
+      "night";
 
-    currentIndex = 0;
+    currentIndex =
+      findFirstUnfinished(
+        currentDay,
+        "night"
+      );
 
-    saveData();
-
-    openSession("night");
+    openSession(
+      "night"
+    );
 
     return;
 
@@ -751,16 +1016,39 @@ function continueAfterComplete() {
 
 
   /*
-    Night → Next Day
+    NIGHT → NEXT DAY
   */
 
   if (
     currentSession === "night"
   ) {
 
+    /*
+      Day 21
+    */
+
     if (
-      currentDay <
-      TOTAL_DAYS
+      currentDay === TOTAL_DAYS &&
+      isDayComplete(currentDay)
+    ) {
+
+      appData.completedAt =
+        new Date().toISOString();
+
+      saveData();
+
+      showCertificate();
+
+      return;
+
+    }
+
+    /*
+      Move to next day
+    */
+
+    if (
+      currentDay < TOTAL_DAYS
     ) {
 
       currentDay++;
@@ -770,38 +1058,24 @@ function continueAfterComplete() {
 
       saveData();
 
-      /*
-        New day
-      */
-
-      currentSession = "morning";
+      currentSession =
+        "morning";
 
       currentIndex = 0;
 
       updateHome();
 
-      openSession("morning");
+      openSession(
+        "morning"
+      );
 
       return;
 
     }
 
-
-    /*
-      Day 21 completed
-    */
-
-    appData.completedAt =
-      new Date().toISOString();
-
-    saveData();
-
-    showCertificate();
-
   }
 
 }
-
 
 
 /* =========================================================
@@ -815,14 +1089,26 @@ function showCertificate() {
       "certificateDate"
     );
 
-
   if (dateElement) {
 
-    const date =
-      new Date();
+    let completedDate;
+
+    if (appData.completedAt) {
+
+      completedDate =
+        new Date(
+          appData.completedAt
+        );
+
+    } else {
+
+      completedDate =
+        new Date();
+
+    }
 
     dateElement.textContent =
-      `Completed ${date.toLocaleDateString(
+      `Completed ${completedDate.toLocaleDateString(
         "en-GB",
         {
           day: "2-digit",
@@ -833,13 +1119,11 @@ function showCertificate() {
 
   }
 
-
   showScreen(
     "certificateScreen"
   );
 
 }
-
 
 
 /* =========================================================
@@ -848,21 +1132,20 @@ function showCertificate() {
 
 function goHome() {
 
-  showScreen("homeScreen");
+  showScreen(
+    "homeScreen"
+  );
 
   updateHome();
 
 }
 
 
-
 /* =========================================================
    SHOW SCREEN
 ========================================================= */
 
-function showScreen(
-  screenId
-) {
+function showScreen(screenId) {
 
   const screens = [
     "homeScreen",
@@ -870,7 +1153,6 @@ function showScreen(
     "completeScreen",
     "certificateScreen"
   ];
-
 
   screens.forEach(
     id => {
@@ -901,14 +1183,18 @@ function showScreen(
     }
   );
 
+  /*
+    Use instant scroll for
+    screen transitions so mobile
+    navigation feels stable
+  */
 
   window.scrollTo({
     top: 0,
-    behavior: "smooth"
+    behavior: "auto"
   });
 
 }
-
 
 
 /* =========================================================
@@ -923,7 +1209,6 @@ function updateSessionProgress() {
       currentSession
     ).length;
 
-
   const percentage =
     Math.round(
       (
@@ -932,26 +1217,25 @@ function updateSessionProgress() {
       ) * 100
     );
 
-
   const progress =
     document.getElementById(
       "sessionProgress"
     );
-
 
   const text =
     document.getElementById(
       "sessionProgressText"
     );
 
-
   if (progress) {
 
     progress.style.width =
-      `${percentage}%`;
+      `${Math.min(
+        100,
+        percentage
+      )}%`;
 
   }
-
 
   if (text) {
 
@@ -961,7 +1245,6 @@ function updateSessionProgress() {
   }
 
 }
-
 
 
 /* =========================================================
@@ -976,17 +1259,17 @@ function calculateDayProgress(day) {
       "morning"
     ).length;
 
-
   const night =
     getCompleted(
       day,
       "night"
     ).length;
 
-
   const total =
     morning + night;
 
+  const totalPossible =
+    TOTAL_AFFIRMATIONS * 2;
 
   return {
 
@@ -1000,16 +1283,13 @@ function calculateDayProgress(day) {
       Math.round(
         (
           total /
-          (
-            TOTAL_AFFIRMATIONS * 2
-          )
+          totalPossible
         ) * 100
       )
 
   };
 
 }
-
 
 
 /* =========================================================
@@ -1019,7 +1299,6 @@ function calculateDayProgress(day) {
 function calculateOverallProgress() {
 
   let totalCompleted = 0;
-
 
   for (
     let day = 1;
@@ -1033,7 +1312,6 @@ function calculateOverallProgress() {
         "morning"
       ).length;
 
-
     totalCompleted +=
       getCompleted(
         day,
@@ -1042,12 +1320,20 @@ function calculateOverallProgress() {
 
   }
 
-
   const totalPossible =
     TOTAL_DAYS *
     2 *
     TOTAL_AFFIRMATIONS;
 
+  const percentage =
+    totalPossible > 0
+      ? Math.round(
+          (
+            totalCompleted /
+            totalPossible
+          ) * 100
+        )
+      : 0;
 
   return {
 
@@ -1058,17 +1344,14 @@ function calculateOverallProgress() {
       totalPossible,
 
     percentage:
-      Math.round(
-        (
-          totalCompleted /
-          totalPossible
-        ) * 100
+      Math.min(
+        100,
+        percentage
       )
 
   };
 
 }
-
 
 
 /* =========================================================
@@ -1078,7 +1361,6 @@ function calculateOverallProgress() {
 function countCompletedDays() {
 
   let count = 0;
-
 
   for (
     let day = 1;
@@ -1096,34 +1378,69 @@ function countCompletedDays() {
 
   }
 
-
   return count;
 
 }
 
 
-
 /* =========================================================
    STREAK
+   ---------------------------------------------------------
+   Streak = consecutive completed days
+   from the latest completed day
 ========================================================= */
 
 function calculateStreak() {
 
-  let streak = 0;
-
-
-  /*
-    Find the latest completed day
-  */
+  const completedDays = [];
 
   for (
-    let day = TOTAL_DAYS;
-    day >= 1;
-    day--
+    let day = 1;
+    day <= TOTAL_DAYS;
+    day++
   ) {
 
     if (
       isDayComplete(day)
+    ) {
+
+      completedDays.push(day);
+
+    }
+
+  }
+
+  if (
+    completedDays.length === 0
+  ) {
+
+    return 0;
+
+  }
+
+  let streak = 0;
+
+  for (
+    let i =
+      completedDays.length - 1;
+    i >= 0;
+    i--
+  ) {
+
+    if (
+      i ===
+      completedDays.length - 1
+    ) {
+
+      streak = 1;
+
+      continue;
+
+    }
+
+    if (
+      completedDays[i + 1] -
+      completedDays[i] === 1
     ) {
 
       streak++;
@@ -1136,43 +1453,9 @@ function calculateStreak() {
 
   }
 
-
-  /*
-    If current progress is not
-    completed from the end,
-    calculate consecutive days
-    from Day 1
-  */
-
-  if (streak === 0) {
-
-    for (
-      let day = 1;
-      day <= TOTAL_DAYS;
-      day++
-    ) {
-
-      if (
-        isDayComplete(day)
-      ) {
-
-        streak++;
-
-      } else {
-
-        break;
-
-      }
-
-    }
-
-  }
-
-
   return streak;
 
 }
-
 
 
 /* =========================================================
@@ -1198,7 +1481,6 @@ function updateHome() {
 }
 
 
-
 /* =========================================================
    DAY TITLE
 ========================================================= */
@@ -1210,19 +1492,16 @@ function updateDayTitle() {
       "dayTitle"
     );
 
-
   if (!element) {
 
     return;
 
   }
 
-
   element.textContent =
     `Day ${currentDay}`;
 
 }
-
 
 
 /* =========================================================
@@ -1234,36 +1513,30 @@ function updateOverallProgress() {
   const data =
     calculateOverallProgress();
 
-
   const progress =
     document.getElementById(
       "overallProgress"
     );
-
 
   const text =
     document.getElementById(
       "overallText"
     );
 
-
   const daysText =
     document.getElementById(
       "completedDaysText"
     );
-
 
   const totalText =
     document.getElementById(
       "totalCompletedText"
     );
 
-
   const todayText =
     document.getElementById(
       "todayPercent"
     );
-
 
   if (progress) {
 
@@ -1272,14 +1545,12 @@ function updateOverallProgress() {
 
   }
 
-
   if (text) {
 
     text.textContent =
       `${data.percentage}%`;
 
   }
-
 
   if (daysText) {
 
@@ -1288,7 +1559,6 @@ function updateOverallProgress() {
 
   }
 
-
   if (totalText) {
 
     totalText.textContent =
@@ -1296,16 +1566,16 @@ function updateOverallProgress() {
 
   }
 
-
   if (todayText) {
 
     todayText.textContent =
-      `${calculateDayProgress(currentDay).percentage}%`;
+      `${calculateDayProgress(
+        currentDay
+      ).percentage}%`;
 
   }
 
 }
-
 
 
 /* =========================================================
@@ -1319,7 +1589,6 @@ function updateStreak() {
       "streakNumber"
     );
 
-
   if (element) {
 
     element.textContent =
@@ -1330,62 +1599,52 @@ function updateStreak() {
 }
 
 
-
 /* =========================================================
    SESSION STATUS
 ========================================================= */
 
 function updateSessionStatus() {
 
-  const morningData =
+  const progress =
     calculateDayProgress(
       currentDay
     );
 
-
   const morningCount =
-    morningData.morning;
-
+    progress.morning;
 
   const nightCount =
-    morningData.night;
-
+    progress.night;
 
   const morningStatus =
     document.getElementById(
       "morningStatus"
     );
 
-
   const nightStatus =
     document.getElementById(
       "nightStatus"
     );
-
 
   const morningProgress =
     document.getElementById(
       "morningProgress"
     );
 
-
   const nightProgress =
     document.getElementById(
       "nightProgress"
     );
-
 
   const morningButton =
     document.getElementById(
       "morningButton"
     );
 
-
   const nightButton =
     document.getElementById(
       "nightButton"
     );
-
 
   const morningPercent =
     Math.round(
@@ -1395,7 +1654,6 @@ function updateSessionStatus() {
       ) * 100
     );
 
-
   const nightPercent =
     Math.round(
       (
@@ -1404,14 +1662,12 @@ function updateSessionStatus() {
       ) * 100
     );
 
-
   if (morningStatus) {
 
     morningStatus.textContent =
       `${morningCount} / ${TOTAL_AFFIRMATIONS} completed`;
 
   }
-
 
   if (nightStatus) {
 
@@ -1420,98 +1676,89 @@ function updateSessionStatus() {
 
   }
 
-
   if (morningProgress) {
 
     morningProgress.style.width =
-      `${morningPercent}%`;
+      `${Math.min(
+        100,
+        morningPercent
+      )}%`;
 
   }
-
 
   if (nightProgress) {
 
     nightProgress.style.width =
-      `${nightPercent}%`;
+      `${Math.min(
+        100,
+        nightPercent
+      )}%`;
 
   }
 
+  updateSessionButton(
+    morningButton,
+    morningCount
+  );
 
-  if (morningButton) {
-
-    if (
-      morningCount >=
-      TOTAL_AFFIRMATIONS
-    ) {
-
-      morningButton.textContent =
-        "Review";
-
-      morningButton.classList.add(
-        "completed"
-      );
-
-    } else if (morningCount > 0) {
-
-      morningButton.textContent =
-        "Continue";
-
-      morningButton.classList.remove(
-        "completed"
-      );
-
-    } else {
-
-      morningButton.textContent =
-        "Start";
-
-      morningButton.classList.remove(
-        "completed"
-      );
-
-    }
-
-  }
-
-
-  if (nightButton) {
-
-    if (
-      nightCount >=
-      TOTAL_AFFIRMATIONS
-    ) {
-
-      nightButton.textContent =
-        "Review";
-
-      nightButton.classList.add(
-        "completed"
-      );
-
-    } else if (nightCount > 0) {
-
-      nightButton.textContent =
-        "Continue";
-
-      nightButton.classList.remove(
-        "completed"
-      );
-
-    } else {
-
-      nightButton.textContent =
-        "Start";
-
-      nightButton.classList.remove(
-        "completed"
-      );
-
-    }
-
-  }
+  updateSessionButton(
+    nightButton,
+    nightCount
+  );
 
 }
 
+
+/* =========================================================
+   SESSION BUTTON
+========================================================= */
+
+function updateSessionButton(
+  button,
+  completedCount
+) {
+
+  if (!button) {
+
+    return;
+
+  }
+
+  button.classList.remove(
+    "completed"
+  );
+
+  if (
+    completedCount >=
+    TOTAL_AFFIRMATIONS
+  ) {
+
+    button.textContent =
+      "Review";
+
+    button.classList.add(
+      "completed"
+    );
+
+    return;
+
+  }
+
+  if (
+    completedCount > 0
+  ) {
+
+    button.textContent =
+      "Continue";
+
+    return;
+
+  }
+
+  button.textContent =
+    "Start";
+
+}
 
 
 /* =========================================================
@@ -1525,16 +1772,13 @@ function renderDays() {
       "daysGrid"
     );
 
-
   if (!grid) {
 
     return;
 
   }
 
-
   grid.innerHTML = "";
-
 
   for (
     let day = 1;
@@ -1547,12 +1791,11 @@ function renderDays() {
         "button"
       );
 
-
-    button.type = "button";
+    button.type =
+      "button";
 
     button.className =
       "day-button";
-
 
     if (
       day === currentDay
@@ -1564,7 +1807,6 @@ function renderDays() {
 
     }
 
-
     if (
       isDayComplete(day)
     ) {
@@ -1575,37 +1817,41 @@ function renderDays() {
 
     }
 
-
     const progress =
       calculateDayProgress(
         day
       );
 
-
     let status =
       `${progress.percentage}%`;
-
 
     if (
       isDayComplete(day)
     ) {
 
-      status = "✓ Done";
+      status =
+        "✓ Done";
 
     }
-
 
     button.innerHTML = `
       <span>${day}</span>
       <span>${status}</span>
     `;
 
+    button.setAttribute(
+      "aria-label",
+      `Day ${day}, ${status}`
+    );
 
     button.addEventListener(
       "click",
-      () => selectDay(day)
-    );
+      () => {
 
+        selectDay(day);
+
+      }
+    );
 
     grid.appendChild(
       button
@@ -1616,24 +1862,29 @@ function renderDays() {
 }
 
 
-
 /* =========================================================
    SELECT DAY
 ========================================================= */
 
 function selectDay(day) {
 
+  const selectedDay =
+    Number(day);
+
   if (
-    day < 1 ||
-    day > TOTAL_DAYS
+    !Number.isInteger(
+      selectedDay
+    ) ||
+    selectedDay < 1 ||
+    selectedDay > TOTAL_DAYS
   ) {
 
     return;
 
   }
 
-
-  currentDay = day;
+  currentDay =
+    selectedDay;
 
   appData.currentDay =
     currentDay;
@@ -1650,7 +1901,6 @@ function selectDay(day) {
 }
 
 
-
 /* =========================================================
    JOURNAL KEY
 ========================================================= */
@@ -1662,7 +1912,6 @@ function getJournalKey(day) {
 }
 
 
-
 /* =========================================================
    GET JOURNAL
 ========================================================= */
@@ -1672,51 +1921,54 @@ function getJournal(day) {
   const key =
     getJournalKey(day);
 
-
   if (
     !appData.journal ||
-    typeof appData.journal[key] !==
-      "object"
+    !appData.journal[key] ||
+    typeof appData.journal[key] !== "object"
   ) {
 
-    return {
-
-      intention: "",
-      action: "",
-      gratitude1: "",
-      gratitude2: "",
-      gratitude3: "",
-      reflection: ""
-
-    };
+    return createEmptyJournal();
 
   }
 
+  const saved =
+    appData.journal[key];
 
   return {
 
     intention:
-      appData.journal[key].intention || "",
+      typeof saved.intention === "string"
+        ? saved.intention
+        : "",
 
     action:
-      appData.journal[key].action || "",
+      typeof saved.action === "string"
+        ? saved.action
+        : "",
 
     gratitude1:
-      appData.journal[key].gratitude1 || "",
+      typeof saved.gratitude1 === "string"
+        ? saved.gratitude1
+        : "",
 
     gratitude2:
-      appData.journal[key].gratitude2 || "",
+      typeof saved.gratitude2 === "string"
+        ? saved.gratitude2
+        : "",
 
     gratitude3:
-      appData.journal[key].gratitude3 || "",
+      typeof saved.gratitude3 === "string"
+        ? saved.gratitude3
+        : "",
 
     reflection:
-      appData.journal[key].reflection || ""
+      typeof saved.reflection === "string"
+        ? saved.reflection
+        : ""
 
   };
 
 }
-
 
 
 /* =========================================================
@@ -1730,45 +1982,52 @@ function saveJournal() {
       currentDay
     );
 
-
   if (!appData.journal) {
 
     appData.journal = {};
 
   }
 
-
   appData.journal[key] = {
 
     intention:
-      getValue("intentionInput"),
+      getValue(
+        "intentionInput"
+      ),
 
     action:
-      getValue("actionInput"),
+      getValue(
+        "actionInput"
+      ),
 
     gratitude1:
-      getValue("gratitude1"),
+      getValue(
+        "gratitude1"
+      ),
 
     gratitude2:
-      getValue("gratitude2"),
+      getValue(
+        "gratitude2"
+      ),
 
     gratitude3:
-      getValue("gratitude3"),
+      getValue(
+        "gratitude3"
+      ),
 
     reflection:
-      getValue("reflectionInput")
+      getValue(
+        "reflectionInput"
+      )
 
   };
 
-
   saveData();
-
 
   const status =
     document.getElementById(
       "journalSaveStatus"
     );
-
 
   if (status) {
 
@@ -1783,9 +2042,8 @@ function saveJournal() {
 }
 
 
-
 /* =========================================================
-   GET INPUT VALUE
+   GET VALUE
 ========================================================= */
 
 function getValue(id) {
@@ -1793,18 +2051,15 @@ function getValue(id) {
   const element =
     document.getElementById(id);
 
-
   if (!element) {
 
     return "";
 
   }
 
-
-  return element.value;
+  return element.value || "";
 
 }
-
 
 
 /* =========================================================
@@ -1818,36 +2073,30 @@ function updateJournal() {
       currentDay
     );
 
-
   setValue(
     "intentionInput",
     journal.intention
   );
-
 
   setValue(
     "actionInput",
     journal.action
   );
 
-
   setValue(
     "gratitude1",
     journal.gratitude1
   );
-
 
   setValue(
     "gratitude2",
     journal.gratitude2
   );
 
-
   setValue(
     "gratitude3",
     journal.gratitude3
   );
-
 
   setValue(
     "reflectionInput",
@@ -1855,7 +2104,6 @@ function updateJournal() {
   );
 
 }
-
 
 
 /* =========================================================
@@ -1868,8 +2116,9 @@ function setValue(
 ) {
 
   const element =
-    document.getElementById(id);
-
+    document.getElementById(
+      id
+    );
 
   if (element) {
 
@@ -1879,7 +2128,6 @@ function setValue(
   }
 
 }
-
 
 
 /* =========================================================
@@ -1893,17 +2141,14 @@ function updateDate() {
       "todayDate"
     );
 
-
   if (!element) {
 
     return;
 
   }
 
-
   const date =
     new Date();
-
 
   element.textContent =
     date.toLocaleDateString(
@@ -1918,9 +2163,8 @@ function updateDate() {
 }
 
 
-
 /* =========================================================
-   RESET
+   RESET ALL
 ========================================================= */
 
 function resetAll() {
@@ -1930,39 +2174,52 @@ function resetAll() {
       "Are you sure you want to reset your entire 21-Day Journey?"
     );
 
-
   if (!confirmed) {
 
     return;
 
   }
 
+  try {
 
-  localStorage.removeItem(
-    STORAGE_KEY
-  );
+    localStorage.removeItem(
+      STORAGE_KEY
+    );
 
+    localStorage.removeItem(
+      OLD_COMPLETED_KEY
+    );
 
-  /*
-    Remove old version too
-  */
+  } catch (error) {
 
-  localStorage.removeItem(
-    OLD_COMPLETED_KEY
-  );
+    console.warn(
+      "Unable to clear storage",
+      error
+    );
 
+  }
 
   appData =
     createDefaultData();
 
-
-  currentDay = 1;
+  currentDay =
+    1;
 
   currentSession =
     "morning";
 
-  currentIndex = 0;
+  currentIndex =
+    0;
 
+  if (navigationTimer) {
+
+    clearTimeout(
+      navigationTimer
+    );
+
+    navigationTimer = null;
+
+  }
 
   updateHome();
 
@@ -1971,7 +2228,6 @@ function resetAll() {
   );
 
 }
-
 
 
 /* =========================================================
@@ -1987,7 +2243,6 @@ document.addEventListener(
         "sessionScreen"
       );
 
-
     if (
       !sessionScreen ||
       sessionScreen.classList.contains(
@@ -1999,31 +2254,55 @@ document.addEventListener(
 
     }
 
+    /*
+      Don't hijack keyboard navigation
+      while user is typing into an input
+    */
+
+    const active =
+      document.activeElement;
+
+    if (
+      active &&
+      (
+        active.tagName === "INPUT" ||
+        active.tagName === "TEXTAREA" ||
+        active.isContentEditable
+      )
+    ) {
+
+      return;
+
+    }
 
     if (
       event.key ===
       "ArrowRight"
     ) {
 
+      event.preventDefault();
+
       nextAffirmation();
 
     }
-
 
     if (
       event.key ===
       "ArrowLeft"
     ) {
 
+      event.preventDefault();
+
       previousAffirmation();
 
     }
-
 
     if (
       event.key ===
       "Enter"
     ) {
+
+      event.preventDefault();
 
       markDone();
 
@@ -2031,7 +2310,6 @@ document.addEventListener(
 
   }
 );
-
 
 
 /* =========================================================
@@ -2043,12 +2321,10 @@ function initApp() {
   appData =
     loadData();
 
-
   currentDay =
     Number(
       appData.currentDay
     ) || 1;
-
 
   if (
     currentDay < 1 ||
@@ -2057,19 +2333,22 @@ function initApp() {
 
     currentDay = 1;
 
-    appData.currentDay = 1;
-
-    saveData();
+    appData.currentDay =
+      1;
 
   }
-
 
   currentSession =
     "morning";
 
+  currentIndex =
+    0;
 
-  currentIndex = 0;
+  /*
+    Repair invalid stored data
+  */
 
+  saveData();
 
   updateHome();
 
@@ -2078,7 +2357,6 @@ function initApp() {
   );
 
 }
-
 
 
 /* =========================================================
@@ -2092,7 +2370,10 @@ if (
 
   document.addEventListener(
     "DOMContentLoaded",
-    initApp
+    initApp,
+    {
+      once: true
+    }
   );
 
 } else {
