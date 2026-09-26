@@ -1,464 +1,1809 @@
 <!DOCTYPE html>
-<html lang="my">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#6d4aff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="21-Day Abundance">
 
-  <meta name="theme-color" content="#7c3aed">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Aung 21 Day">
+<title>21-Day Abundance</title>
 
-  <title>Aung 21-Day Abundance</title>
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
 
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="style.css">
+:root{
+  --primary:#6d4aff;
+  --primary-dark:#4f35c9;
+  --purple-soft:#eeeaff;
+  --cream:#fffaf2;
+  --bg:#f7f5ff;
+  --card:#ffffff;
+  --text:#211d2d;
+  --muted:#777184;
+  --border:#ebe7f4;
+  --success:#19a463;
+  --gold:#d49a21;
+  --danger:#dc4444;
+  --shadow:0 12px 35px rgba(49,36,105,.08);
+  --radius:22px;
+}
+
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Noto Sans Myanmar",
+    "Myanmar Text",
+    sans-serif;
+  background:
+    radial-gradient(circle at top right,#eeeaff 0,transparent 32%),
+    var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  line-height:1.5;
+}
+
+button,
+input,
+textarea{
+  font:inherit;
+}
+
+button{
+  cursor:pointer;
+}
+
+.hidden{
+  display:none!important;
+}
+
+/* =========================
+   APP HEADER
+========================= */
+
+.app-header{
+  position:sticky;
+  top:0;
+  z-index:100;
+  background:rgba(247,245,255,.92);
+  backdrop-filter:blur(18px);
+  border-bottom:1px solid rgba(235,231,244,.8);
+}
+
+.header-inner{
+  max-width:1050px;
+  margin:auto;
+  padding:
+    max(14px,env(safe-area-inset-top))
+    18px
+    14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  min-width:0;
+}
+
+.brand-icon{
+  width:43px;
+  height:43px;
+  flex:0 0 43px;
+  border-radius:14px;
+  display:grid;
+  place-items:center;
+  color:white;
+  font-size:20px;
+  background:linear-gradient(135deg,#7c5cff,#5a3be0);
+  box-shadow:0 8px 18px rgba(109,74,255,.25);
+}
+
+.brand-text{
+  min-width:0;
+}
+
+.brand-title{
+  font-size:16px;
+  font-weight:800;
+  letter-spacing:-.2px;
+}
+
+.brand-subtitle{
+  color:var(--muted);
+  font-size:11px;
+  white-space:nowrap;
+}
+
+.reset-btn{
+  border:1px solid var(--border);
+  background:white;
+  color:#6d6678;
+  border-radius:12px;
+  padding:9px 12px;
+  font-size:12px;
+  font-weight:700;
+}
+
+/* =========================
+   APP CONTAINER
+========================= */
+
+.app{
+  max-width:1050px;
+  margin:auto;
+  padding:22px 16px 50px;
+}
+
+/* =========================
+   DASHBOARD HERO
+========================= */
+
+.dashboard-hero{
+  position:relative;
+  overflow:hidden;
+  padding:26px;
+  border-radius:28px;
+  color:white;
+  background:
+    radial-gradient(circle at 90% 10%,rgba(255,255,255,.2),transparent 25%),
+    linear-gradient(135deg,#6d4aff,#8b6cff 55%,#563bd0);
+  box-shadow:0 18px 45px rgba(79,53,201,.22);
+  margin-bottom:18px;
+}
+
+.dashboard-hero::after{
+  content:"";
+  position:absolute;
+  width:170px;
+  height:170px;
+  right:-65px;
+  bottom:-80px;
+  border-radius:50%;
+  background:rgba(255,255,255,.09);
+}
+
+.hero-top{
+  position:relative;
+  z-index:1;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:15px;
+}
+
+.eyebrow{
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:1.3px;
+  opacity:.78;
+}
+
+.hero-title{
+  margin-top:5px;
+  font-size:27px;
+  font-weight:850;
+  letter-spacing:-.8px;
+}
+
+.hero-message{
+  margin-top:5px;
+  font-size:13px;
+  opacity:.84;
+}
+
+.day-pill{
+  flex-shrink:0;
+  background:rgba(255,255,255,.16);
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:14px;
+  padding:9px 12px;
+  text-align:center;
+}
+
+.day-pill strong{
+  display:block;
+  font-size:17px;
+}
+
+.day-pill span{
+  display:block;
+  font-size:9px;
+  opacity:.75;
+  text-transform:uppercase;
+  letter-spacing:.8px;
+}
+
+.hero-progress{
+  position:relative;
+  z-index:1;
+  margin-top:24px;
+}
+
+.progress-meta{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:8px;
+  font-size:11px;
+  font-weight:700;
+  opacity:.9;
+}
+
+.progress-track{
+  height:9px;
+  border-radius:99px;
+  background:rgba(255,255,255,.2);
+  overflow:hidden;
+}
+
+.progress-fill{
+  height:100%;
+  width:0%;
+  border-radius:inherit;
+  background:white;
+  transition:width .35s ease;
+}
+
+.hero-bottom{
+  position:relative;
+  z-index:1;
+  display:flex;
+  justify-content:space-between;
+  gap:15px;
+  margin-top:12px;
+  font-size:11px;
+  opacity:.82;
+}
+
+/* =========================
+   STATS
+========================= */
+
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+  margin-bottom:18px;
+}
+
+.stat-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:17px;
+  box-shadow:var(--shadow);
+}
+
+.stat-icon{
+  font-size:18px;
+}
+
+.stat-number{
+  margin-top:7px;
+  font-size:23px;
+  font-weight:850;
+  letter-spacing:-.6px;
+}
+
+.stat-label{
+  margin-top:2px;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:600;
+}
+
+/* =========================
+   SECTION
+========================= */
+
+.section{
+  margin-top:22px;
+}
+
+.section-heading{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:12px;
+}
+
+.section-title{
+  font-size:18px;
+  font-weight:850;
+  letter-spacing:-.35px;
+}
+
+.section-subtitle{
+  color:var(--muted);
+  font-size:11px;
+  margin-top:2px;
+}
+
+/* =========================
+   PRACTICE CARDS
+========================= */
+
+.practice-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+
+.practice-card{
+  background:white;
+  border:1px solid var(--border);
+  border-radius:22px;
+  padding:20px;
+  box-shadow:var(--shadow);
+}
+
+.practice-card.morning{
+  background:linear-gradient(145deg,#fffdf6,#fff8e7);
+}
+
+.practice-card.night{
+  background:linear-gradient(145deg,#fbf9ff,#f1edff);
+}
+
+.practice-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+}
+
+.practice-icon{
+  width:43px;
+  height:43px;
+  border-radius:14px;
+  display:grid;
+  place-items:center;
+  font-size:20px;
+  background:white;
+  box-shadow:0 5px 16px rgba(40,30,70,.08);
+}
+
+.practice-name{
+  margin-top:14px;
+  font-size:17px;
+  font-weight:850;
+}
+
+.practice-count{
+  margin-top:2px;
+  color:var(--muted);
+  font-size:11px;
+}
+
+.mini-track{
+  height:7px;
+  margin-top:15px;
+  border-radius:99px;
+  background:#ece8f2;
+  overflow:hidden;
+}
+
+.mini-fill{
+  height:100%;
+  width:0%;
+  border-radius:inherit;
+  background:var(--primary);
+  transition:width .3s ease;
+}
+
+.practice-status{
+  margin-top:9px;
+  color:var(--muted);
+  font-size:11px;
+}
+
+.primary-btn{
+  width:100%;
+  margin-top:16px;
+  border:0;
+  border-radius:14px;
+  padding:13px 16px;
+  color:white;
+  background:linear-gradient(135deg,#6d4aff,#5738d2);
+  font-weight:800;
+  font-size:13px;
+  box-shadow:0 8px 18px rgba(109,74,255,.2);
+}
+
+.primary-btn.completed{
+  background:linear-gradient(135deg,#19a463,#12834e);
+}
+
+/* =========================
+   QUICK ACTIONS
+========================= */
+
+.quick-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:11px;
+}
+
+.quick-btn{
+  border:1px solid var(--border);
+  background:white;
+  border-radius:17px;
+  padding:16px 10px;
+  text-align:center;
+  box-shadow:var(--shadow);
+  color:var(--text);
+  font-weight:750;
+  font-size:11px;
+}
+
+.quick-btn span{
+  display:block;
+  font-size:21px;
+  margin-bottom:6px;
+}
+
+/* =========================
+   JOURNEY
+========================= */
+
+.journey-card{
+  background:white;
+  border:1px solid var(--border);
+  border-radius:22px;
+  padding:18px;
+  box-shadow:var(--shadow);
+}
+
+.days-grid{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:8px;
+}
+
+.day-button{
+  min-height:55px;
+  border:1px solid var(--border);
+  border-radius:13px;
+  background:#faf9fc;
+  color:var(--muted);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:2px;
+  font-weight:800;
+}
+
+.day-button span:first-child{
+  font-size:14px;
+  color:var(--text);
+}
+
+.day-button span:last-child{
+  font-size:8px;
+  font-weight:700;
+}
+
+.day-button.active{
+  border-color:var(--primary);
+  background:var(--purple-soft);
+  box-shadow:inset 0 0 0 1px var(--primary);
+}
+
+.day-button.active span:first-child{
+  color:var(--primary);
+}
+
+.day-button.completed{
+  border-color:#bce8d2;
+  background:#effaf4;
+}
+
+.day-button.completed span:first-child{
+  color:var(--success);
+}
+
+/* =========================
+   MINDSET
+========================= */
+
+.mindset-card{
+  background:linear-gradient(135deg,#fff,#f8f5ff);
+  border:1px solid var(--border);
+  border-radius:22px;
+  padding:20px;
+  box-shadow:var(--shadow);
+}
+
+.mindset-label{
+  color:var(--primary);
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:1px;
+  text-transform:uppercase;
+}
+
+.mindset-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  margin-top:14px;
+}
+
+.mindset-box{
+  background:white;
+  border:1px solid var(--border);
+  border-radius:15px;
+  padding:14px;
+}
+
+.mindset-box h4{
+  font-size:12px;
+  margin-bottom:7px;
+}
+
+.mindset-box p{
+  color:var(--muted);
+  font-size:11px;
+  min-height:34px;
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+
+/* =========================
+   ACHIEVEMENTS
+========================= */
+
+.achievement-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:11px;
+}
+
+.achievement{
+  border:1px solid var(--border);
+  background:white;
+  border-radius:18px;
+  padding:15px;
+  box-shadow:var(--shadow);
+}
+
+.achievement.locked{
+  opacity:.55;
+}
+
+.achievement-icon{
+  font-size:23px;
+}
+
+.achievement-title{
+  margin-top:7px;
+  font-size:11px;
+  font-weight:850;
+}
+
+.achievement-status{
+  margin-top:3px;
+  color:var(--muted);
+  font-size:9px;
+}
+
+/* =========================
+   JOURNAL
+========================= */
+
+.form-card{
+  background:white;
+  border:1px solid var(--border);
+  border-radius:22px;
+  padding:20px;
+  box-shadow:var(--shadow);
+}
+
+.form-group{
+  margin-bottom:15px;
+}
+
+.form-group:last-child{
+  margin-bottom:0;
+}
+
+.form-label{
+  display:block;
+  margin-bottom:7px;
+  font-size:12px;
+  font-weight:800;
+}
+
+textarea{
+  width:100%;
+  min-height:85px;
+  resize:vertical;
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:12px;
+  outline:none;
+  background:#fbfaff;
+  color:var(--text);
+  font-size:12px;
+}
+
+textarea:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(109,74,255,.08);
+}
+
+.gratitude-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+
+/* =========================
+   SAVE STATUS
+========================= */
+
+.save-status{
+  text-align:right;
+  color:var(--success);
+  font-size:10px;
+  margin-top:7px;
+}
+
+/* =========================
+   SESSION SCREEN
+========================= */
+
+.session-shell{
+  max-width:720px;
+  margin:0 auto;
+}
+
+.session-header{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.back-btn{
+  width:40px;
+  height:40px;
+  border:1px solid var(--border);
+  border-radius:13px;
+  background:white;
+}
+
+.session-heading{
+  flex:1;
+}
+
+.session-heading strong{
+  display:block;
+  font-size:15px;
+}
+
+.session-heading span{
+  display:block;
+  color:var(--muted);
+  font-size:10px;
+}
+
+.session-counter{
+  color:var(--primary);
+  font-size:12px;
+  font-weight:800;
+}
+
+.session-progress-wrap{
+  margin-top:20px;
+}
+
+.session-progress-track{
+  height:8px;
+  background:#e9e5f0;
+  border-radius:99px;
+  overflow:hidden;
+}
+
+.session-progress-fill{
+  height:100%;
+  width:0%;
+  background:var(--primary);
+  border-radius:inherit;
+  transition:width .3s ease;
+}
+
+.session-progress-text{
+  margin-top:7px;
+  color:var(--muted);
+  font-size:10px;
+  text-align:right;
+}
+
+.affirmation-card{
+  margin-top:18px;
+  background:white;
+  border:1px solid var(--border);
+  border-radius:26px;
+  padding:28px 22px;
+  box-shadow:var(--shadow);
+  text-align:center;
+}
+
+.affirmation-number{
+  width:42px;
+  height:42px;
+  margin:0 auto 17px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:var(--purple-soft);
+  color:var(--primary);
+  font-weight:850;
+}
+
+.affirmation-text{
+  font-size:18px;
+  line-height:1.9;
+  font-weight:700;
+}
+
+.practice-tip{
+  margin-top:17px;
+  padding:13px 15px;
+  border-radius:15px;
+  background:#faf8ff;
+  color:var(--muted);
+  font-size:11px;
+  text-align:center;
+}
+
+.done-btn{
+  width:100%;
+  margin-top:16px;
+  border:0;
+  border-radius:15px;
+  padding:14px;
+  background:var(--primary);
+  color:white;
+  font-weight:850;
+}
+
+.done-btn.completed{
+  background:var(--success);
+}
+
+.session-nav{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:10px;
+}
+
+.secondary-btn{
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:12px;
+  background:white;
+  font-weight:750;
+}
+
+.secondary-btn:disabled{
+  opacity:.4;
+  cursor:not-allowed;
+}
+
+/* =========================
+   COMPLETE
+========================= */
+
+.complete-shell,
+.certificate-shell{
+  max-width:650px;
+  margin:20px auto;
+  text-align:center;
+}
+
+.complete-card,
+.certificate-card{
+  background:white;
+  border:1px solid var(--border);
+  border-radius:28px;
+  padding:35px 22px;
+  box-shadow:var(--shadow);
+}
+
+.trophy{
+  font-size:55px;
+}
+
+.complete-title{
+  margin-top:13px;
+  font-size:25px;
+  font-weight:900;
+}
+
+.complete-message{
+  margin-top:8px;
+  color:var(--muted);
+  font-size:13px;
+}
+
+.complete-stats{
+  display:flex;
+  justify-content:center;
+  gap:30px;
+  margin:24px 0;
+}
+
+.complete-stat strong{
+  display:block;
+  font-size:24px;
+}
+
+.complete-stat span{
+  color:var(--muted);
+  font-size:10px;
+}
+
+/* =========================
+   CERTIFICATE
+========================= */
+
+.certificate-card{
+  border:2px solid #d7c9ff;
+  background:
+    radial-gradient(circle at top,#f4efff,transparent 45%),
+    white;
+}
+
+.certificate-label{
+  color:var(--primary);
+  font-size:11px;
+  font-weight:850;
+  letter-spacing:2px;
+}
+
+.certificate-title{
+  margin-top:12px;
+  font-size:30px;
+  font-weight:900;
+}
+
+.certificate-name{
+  margin-top:25px;
+  font-size:23px;
+  font-weight:850;
+}
+
+.certificate-date{
+  margin-top:5px;
+  color:var(--muted);
+  font-size:11px;
+}
+
+.badges{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin-top:25px;
+  flex-wrap:wrap;
+}
+
+.badge{
+  padding:9px 13px;
+  border-radius:99px;
+  background:var(--purple-soft);
+  color:var(--primary);
+  font-size:10px;
+  font-weight:800;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media(max-width:800px){
+
+  .stats-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .achievement-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+}
+
+@media(max-width:600px){
+
+  .app{
+    padding:17px 13px 40px;
+  }
+
+  .dashboard-hero{
+    padding:21px;
+    border-radius:24px;
+  }
+
+  .hero-title{
+    font-size:24px;
+  }
+
+  .practice-grid{
+    grid-template-columns:1fr;
+  }
+
+  .quick-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .days-grid{
+    grid-template-columns:repeat(7,1fr);
+    gap:6px;
+  }
+
+  .day-button{
+    min-height:49px;
+    border-radius:11px;
+  }
+
+  .day-button span:last-child{
+    font-size:7px;
+  }
+
+  .mindset-row{
+    grid-template-columns:1fr;
+  }
+
+  .gratitude-grid{
+    grid-template-columns:1fr;
+  }
+
+  .affirmation-text{
+    font-size:16px;
+    line-height:1.85;
+  }
+
+}
+
+@media(max-width:380px){
+
+  .header-inner{
+    padding-left:12px;
+    padding-right:12px;
+  }
+
+  .brand-title{
+    font-size:14px;
+  }
+
+  .brand-subtitle{
+    display:none;
+  }
+
+  .stat-card{
+    padding:14px;
+  }
+
+  .stat-number{
+    font-size:20px;
+  }
+
+}
+</style>
 </head>
 
 <body>
 
-<div class="app">
+<header class="app-header">
+  <div class="header-inner">
 
-  <!-- ================= HEADER ================= -->
-
-  <header class="header">
-
-    <div class="brand-area">
+    <div class="brand">
       <div class="brand-icon">✦</div>
 
-      <div>
-        <div class="brand">Aung 21-Day</div>
-        <div class="subtitle">Abundance Journey</div>
+      <div class="brand-text">
+        <div class="brand-title">21-Day Abundance</div>
+        <div class="brand-subtitle">Your Journey • Your Growth</div>
       </div>
     </div>
 
-    <button class="reset-btn" onclick="resetAll()">
+    <button
+      class="reset-btn"
+      type="button"
+      onclick="resetAll()">
       Reset
     </button>
 
-  </header>
+  </div>
+</header>
 
 
-  <!-- ================= HOME SCREEN ================= -->
+<main class="app">
 
-  <main id="homeScreen">
 
-    <!-- HERO -->
+<!-- =====================================================
+     HOME / DASHBOARD
+===================================================== -->
 
-    <section class="hero-card">
+<section id="homeScreen">
 
-      <div class="hero-top">
 
-        <div>
-          <div class="hero-small">YOUR ABUNDANCE JOURNEY</div>
+  <!-- HERO -->
 
-          <h1 id="dayTitle">Day 1</h1>
+  <section class="dashboard-hero">
 
-          <p class="hero-description">
-            Build your daily abundance practice
+    <div class="hero-top">
+
+      <div>
+        <div class="eyebrow">
+          YOUR ABUNDANCE JOURNEY
+        </div>
+
+        <h1 class="hero-title">
+          <span id="dayTitle">Day 1</span>
+        </h1>
+
+        <p class="hero-message">
+          Stay consistent. Stay grateful. Keep growing.
+        </p>
+      </div>
+
+      <div class="day-pill">
+        <strong id="heroDayNumber">1</strong>
+        <span>of 21 days</span>
+      </div>
+
+    </div>
+
+
+    <div class="hero-progress">
+
+      <div class="progress-meta">
+        <span>Overall Progress</span>
+        <strong id="overallText">0%</strong>
+      </div>
+
+      <div class="progress-track">
+        <div
+          id="overallProgress"
+          class="progress-fill">
+        </div>
+      </div>
+
+    </div>
+
+
+    <div class="hero-bottom">
+      <span>
+        <strong id="completedDaysText">0 / 21</strong>
+        days complete
+      </span>
+
+      <span id="todayDate">
+        —
+      </span>
+    </div>
+
+  </section>
+
+
+  <!-- STATS -->
+
+  <section class="stats-grid">
+
+    <div class="stat-card">
+      <div class="stat-icon">🔥</div>
+      <div
+        id="streakNumber"
+        class="stat-number">
+        0
+      </div>
+      <div class="stat-label">
+        Current Streak
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">✓</div>
+      <div
+        id="totalCompletedText"
+        class="stat-number">
+        0
+      </div>
+      <div class="stat-label">
+        Practices Done
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">◈</div>
+      <div
+        id="todayPercent"
+        class="stat-number">
+        0%
+      </div>
+      <div class="stat-label">
+        Current Day
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">◎</div>
+      <div
+        id="heroDayNumber2"
+        class="stat-number">
+        1
+      </div>
+      <div class="stat-label">
+        Current Day
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- TODAY'S PRACTICE -->
+
+  <section class="section">
+
+    <div class="section-heading">
+
+      <div>
+        <div class="section-title">
+          Today's Practice
+        </div>
+
+        <div class="section-subtitle">
+          Complete both sessions for your current day
+        </div>
+      </div>
+
+    </div>
+
+
+    <div class="practice-grid">
+
+
+      <!-- MORNING -->
+
+      <article class="practice-card morning">
+
+        <div class="practice-top">
+
+          <div>
+            <div class="practice-icon">☀️</div>
+
+            <div class="practice-name">
+              Morning
+            </div>
+
+            <div
+              id="morningStatus"
+              class="practice-count">
+              0 / 17 completed
+            </div>
+          </div>
+
+        </div>
+
+        <div class="mini-track">
+          <div
+            id="morningProgress"
+            class="mini-fill">
+          </div>
+        </div>
+
+        <div class="practice-status">
+          Start your day with abundance
+        </div>
+
+        <button
+          id="morningButton"
+          class="primary-btn"
+          type="button"
+          onclick="openSession('morning')">
+          Start
+        </button>
+
+      </article>
+
+
+      <!-- NIGHT -->
+
+      <article class="practice-card night">
+
+        <div class="practice-top">
+
+          <div>
+            <div class="practice-icon">🌙</div>
+
+            <div class="practice-name">
+              Night
+            </div>
+
+            <div
+              id="nightStatus"
+              class="practice-count">
+              0 / 17 completed
+            </div>
+          </div>
+
+        </div>
+
+        <div class="mini-track">
+          <div
+            id="nightProgress"
+            class="mini-fill">
+          </div>
+        </div>
+
+        <div class="practice-status">
+          Close your day with gratitude
+        </div>
+
+        <button
+          id="nightButton"
+          class="primary-btn"
+          type="button"
+          onclick="openSession('night')">
+          Start
+        </button>
+
+      </article>
+
+    </div>
+
+  </section>
+
+
+  <!-- QUICK ACTIONS -->
+
+  <section class="section">
+
+    <div class="section-heading">
+
+      <div>
+        <div class="section-title">
+          Quick Actions
+        </div>
+
+        <div class="section-subtitle">
+          Keep your daily journey moving
+        </div>
+      </div>
+
+    </div>
+
+
+    <div class="quick-grid">
+
+      <button
+        class="quick-btn"
+        type="button"
+        onclick="openSession('morning')">
+        <span>☀️</span>
+        Morning
+      </button>
+
+      <button
+        class="quick-btn"
+        type="button"
+        onclick="openSession('night')">
+        <span>🌙</span>
+        Night
+      </button>
+
+      <button
+        class="quick-btn"
+        type="button"
+        onclick="document.getElementById('journalSection').scrollIntoView({behavior:'smooth'})">
+        <span>✍️</span>
+        Journal
+      </button>
+
+      <button
+        class="quick-btn"
+        type="button"
+        onclick="document.getElementById('gratitudeSection').scrollIntoView({behavior:'smooth'})">
+        <span>🙏</span>
+        Gratitude
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- 21 DAY JOURNEY -->
+
+  <section class="section">
+
+    <div class="section-heading">
+
+      <div>
+        <div class="section-title">
+          21-Day Journey
+        </div>
+
+        <div class="section-subtitle">
+          Track your progress day by day
+        </div>
+      </div>
+
+    </div>
+
+
+    <div class="journey-card">
+
+      <div
+        id="daysGrid"
+        class="days-grid">
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- MINDSET -->
+
+  <section class="section">
+
+    <div class="section-heading">
+
+      <div>
+        <div class="section-title">
+          Daily Mindset
+        </div>
+
+        <div class="section-subtitle">
+          Set your intention and take one meaningful action
+        </div>
+      </div>
+
+    </div>
+
+
+    <div class="mindset-card">
+
+      <div class="mindset-label">
+        CURRENT DAY
+      </div>
+
+      <div class="mindset-row">
+
+        <div class="mindset-box">
+          <h4>🎯 Daily Intention</h4>
+
+          <p id="dashboardIntention">
+            No intention added yet
           </p>
         </div>
 
-        <div class="hero-badge">
-          <span>21</span>
-          <small>DAYS</small>
+        <div class="mindset-box">
+          <h4>⚡ Abundance Action</h4>
+
+          <p id="dashboardAction">
+            No action added yet
+          </p>
         </div>
 
       </div>
 
+    </div>
 
-      <div class="progress-container hero-progress">
-        <div id="overallProgress" class="progress-bar"></div>
-      </div>
-
-      <div class="progress-row">
-
-        <div>
-          <strong id="overallText">0%</strong>
-          <span>Overall Complete</span>
-        </div>
-
-        <div>
-          <strong id="completedDaysText">0 / 21</strong>
-          <span>Days Complete</span>
-        </div>
-
-      </div>
-
-    </section>
+  </section>
 
 
-    <!-- STATS -->
+  <!-- ACHIEVEMENTS -->
 
-    <section class="stats-grid">
+  <section class="section">
 
-      <div class="stat-card">
-
-        <div class="stat-icon purple">🔥</div>
-
-        <div>
-          <strong id="streakNumber">0</strong>
-          <span>Day Streak</span>
-        </div>
-
-      </div>
-
-
-      <div class="stat-card">
-
-        <div class="stat-icon green">✓</div>
-
-        <div>
-          <strong id="totalCompletedText">0</strong>
-          <span>Practices Done</span>
-        </div>
-
-      </div>
-
-
-      <div class="stat-card">
-
-        <div class="stat-icon orange">🎯</div>
-
-        <div>
-          <strong id="todayPercent">0%</strong>
-          <span>Today's Progress</span>
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- TODAY -->
-
-    <section class="section-heading">
+    <div class="section-heading">
 
       <div>
-        <span class="eyebrow">TODAY'S PRACTICE</span>
-        <h2>Daily Practice</h2>
-      </div>
-
-      <span id="todayDate" class="date-label"></span>
-
-    </section>
-
-
-    <!-- MORNING -->
-
-    <section class="session-card morning-card">
-
-      <div class="session-icon">☀️</div>
-
-      <div class="session-info">
-
-        <div class="session-label">MORNING PRACTICE</div>
-
-        <h2>Morning</h2>
-
-        <p id="morningStatus">0 / 17 completed</p>
-
-        <div class="mini-progress">
-          <div id="morningProgress"></div>
+        <div class="section-title">
+          Achievements
         </div>
 
-      </div>
-
-      <button
-        id="morningButton"
-        class="continue-btn"
-        onclick="openSession('morning')"
-      >
-        Start
-      </button>
-
-    </section>
-
-
-    <!-- NIGHT -->
-
-    <section class="session-card night-card">
-
-      <div class="session-icon">🌙</div>
-
-      <div class="session-info">
-
-        <div class="session-label">NIGHT PRACTICE</div>
-
-        <h2>Night</h2>
-
-        <p id="nightStatus">0 / 17 completed</p>
-
-        <div class="mini-progress">
-          <div id="nightProgress"></div>
+        <div class="section-subtitle">
+          Milestones from your journey
         </div>
-
-      </div>
-
-      <button
-        id="nightButton"
-        class="continue-btn"
-        onclick="openSession('night')"
-      >
-        Start
-      </button>
-
-    </section>
-
-
-    <!-- DAILY JOURNAL -->
-
-    <section class="journal-card">
-
-      <div class="journal-header">
-
-        <div class="journal-icon">📝</div>
-
-        <div>
-          <div class="eyebrow">DAILY JOURNAL</div>
-          <h2>Today's Mindset</h2>
-        </div>
-
-      </div>
-
-
-      <label for="intentionInput">
-        🎯 Daily Intention
-      </label>
-
-      <textarea
-        id="intentionInput"
-        class="journal-input"
-        placeholder="ဒီနေ့ ဘာကို အာရုံစိုက်မလဲ..."
-        oninput="saveJournal()"
-      ></textarea>
-
-
-      <label for="actionInput">
-        💰 Abundance Action
-      </label>
-
-      <textarea
-        id="actionInput"
-        class="journal-input"
-        placeholder="ဒီနေ့ abundance တိုးလာစေဖို့ ဘာလုပ်မလဲ..."
-        oninput="saveJournal()"
-      ></textarea>
-
-
-      <div class="journal-save-status" id="journalSaveStatus">
-        Auto saved
-      </div>
-
-    </section>
-
-
-    <!-- GRATITUDE -->
-
-    <section class="journal-card gratitude-card">
-
-      <div class="journal-header">
-
-        <div class="journal-icon">🙏</div>
-
-        <div>
-          <div class="eyebrow">GRATITUDE</div>
-          <h2>3 Things I'm Grateful For</h2>
-        </div>
-
-      </div>
-
-
-      <input
-        id="gratitude1"
-        class="journal-input compact"
-        placeholder="1. ဒီနေ့ ကျေးဇူးတင်မိတာ..."
-        oninput="saveJournal()"
-      >
-
-      <input
-        id="gratitude2"
-        class="journal-input compact"
-        placeholder="2. ဒီနေ့ ကျေးဇူးတင်မိတာ..."
-        oninput="saveJournal()"
-      >
-
-      <input
-        id="gratitude3"
-        class="journal-input compact"
-        placeholder="3. ဒီနေ့ ကျေးဇူးတင်မိတာ..."
-        oninput="saveJournal()"
-      >
-
-    </section>
-
-
-    <!-- REFLECTION -->
-
-    <section class="journal-card">
-
-      <div class="journal-header">
-
-        <div class="journal-icon">💭</div>
-
-        <div>
-          <div class="eyebrow">REFLECTION</div>
-          <h2>Today's Reflection</h2>
-        </div>
-
-      </div>
-
-      <textarea
-        id="reflectionInput"
-        class="journal-input reflection-input"
-        placeholder="ဒီနေ့ ဘာတွေသိလာသလဲ၊ ဘာတွေကောင်းခဲ့သလဲ..."
-        oninput="saveJournal()"
-      ></textarea>
-
-    </section>
-
-
-    <!-- JOURNEY -->
-
-    <section class="journey-section">
-
-      <div class="section-heading">
-
-        <div>
-          <span class="eyebrow">21 DAY PROGRAM</span>
-          <h2>Your Journey</h2>
-        </div>
-
-      </div>
-
-      <div id="daysGrid" class="days-grid"></div>
-
-    </section>
-
-  </main>
-
-
-  <!-- ================= SESSION SCREEN ================= -->
-
-  <main id="sessionScreen" class="hidden">
-
-    <div class="session-header">
-
-      <button onclick="goHome()" class="back-btn">
-        ← Back
-      </button>
-
-      <div class="session-heading-center">
-
-        <div id="sessionDay">
-          Day 1
-        </div>
-
-        <strong id="sessionType">
-          ☀️ Morning
-        </strong>
-
-      </div>
-
-      <div class="session-counter" id="sessionCounter">
-        1 / 17
       </div>
 
     </div>
 
 
-    <div class="session-progress">
+    <div class="achievement-grid">
 
-      <div class="progress-container">
+      <div
+        id="achievementStarted"
+        class="achievement locked">
 
-        <div
-          id="sessionProgress"
-          class="progress-bar"
-        ></div>
+        <div class="achievement-icon">
+          🏁
+        </div>
 
-      </div>
+        <div class="achievement-title">
+          Journey Started
+        </div>
 
-      <div id="sessionProgressText">
-        0 / 17 completed
-      </div>
-
-    </div>
-
-
-    <!-- AFFIRMATION -->
-
-    <section class="affirmation-card">
-
-      <div class="affirmation-top">
-
-        <span class="affirmation-label">
-          AFFIRMATION
-        </span>
-
-        <div
-          class="affirmation-number"
-          id="affirmationNumber"
-        >
-          1
+        <div class="achievement-status">
+          Locked
         </div>
 
       </div>
 
 
       <div
+        id="achievement3"
+        class="achievement locked">
+
+        <div class="achievement-icon">
+          🔥
+        </div>
+
+        <div class="achievement-title">
+          3 Day Streak
+        </div>
+
+        <div class="achievement-status">
+          Locked
+        </div>
+
+      </div>
+
+
+      <div
+        id="achievement7"
+        class="achievement locked">
+
+        <div class="achievement-icon">
+          ⭐
+        </div>
+
+        <div class="achievement-title">
+          7 Days Complete
+        </div>
+
+        <div class="achievement-status">
+          Locked
+        </div>
+
+      </div>
+
+
+      <div
+        id="achievement21"
+        class="achievement locked">
+
+        <div class="achievement-icon">
+          🏆
+        </div>
+
+        <div class="achievement-title">
+          21 Days Complete
+        </div>
+
+        <div class="achievement-status">
+          Locked
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- JOURNAL -->
+
+  <section
+    id="journalSection"
+    class="section">
+
+    <div class="section-heading">
+
+      <div>
+        <div class="section-title">
+          Daily Journal
+        </div>
+
+        <div class="section-subtitle">
+          Write for your current day
+        </div>
+      </div>
+
+    </div>
+
+
+    <div class="form-card">
+
+      <div class="form-group">
+
+        <label
+          class="form-label"
+          for="intentionInput">
+          🎯 Daily Intention
+        </label>
+
+        <textarea
+          id="intentionInput"
+          placeholder="What do you want to focus on today?"
+          oninput="saveJournal()"></textarea>
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label
+          class="form-label"
+          for="actionInput">
+          ⚡ Abundance Action
+        </label>
+
+        <textarea
+          id="actionInput"
+          placeholder="What meaningful action will you take today?"
+          oninput="saveJournal()"></textarea>
+
+      </div>
+
+
+      <div
+        id="journalSaveStatus"
+        class="save-status">
+        ✓ Auto saved
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- GRATITUDE -->
+
+  <section
+    id="gratitudeSection"
+    class="section">
+
+    <div class="section-heading">
+
+      <div>
+        <div class="section-title">
+          Gratitude
+        </div>
+
+        <div class="section-subtitle">
+          Write three things you are grateful for
+        </div>
+      </div>
+
+    </div>
+
+
+    <div class="form-card">
+
+      <div class="gratitude-grid">
+
+        <div class="form-group">
+
+          <label
+            class="form-label"
+            for="gratitude1">
+            01
+          </label>
+
+          <textarea
+            id="gratitude1"
+            placeholder="I am grateful for..."
+            oninput="saveJournal()"></textarea>
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label
+            class="form-label"
+            for="gratitude2">
+            02
+          </label>
+
+          <textarea
+            id="gratitude2"
+            placeholder="I am grateful for..."
+            oninput="saveJournal()"></textarea>
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label
+            class="form-label"
+            for="gratitude3">
+            03
+          </label>
+
+          <textarea
+            id="gratitude3"
+            placeholder="I am grateful for..."
+            oninput="saveJournal()"></textarea>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- REFLECTION -->
+
+  <section class="section">
+
+    <div class="section-heading">
+
+      <div>
+        <div class="section-title">
+          Reflection
+        </div>
+
+        <div class="section-subtitle">
+          Reflect on your current day
+        </div>
+      </div>
+
+    </div>
+
+
+    <div class="form-card">
+
+      <div class="form-group">
+
+        <label
+          class="form-label"
+          for="reflectionInput">
+          💭 Today's Reflection
+        </label>
+
+        <textarea
+          id="reflectionInput"
+          placeholder="How did today's practice make you feel?"
+          oninput="saveJournal()"></textarea>
+
+      </div>
+
+    </div>
+
+  </section>
+
+</section>
+
+
+<!-- =====================================================
+     SESSION SCREEN
+===================================================== -->
+
+<section
+  id="sessionScreen"
+  class="hidden">
+
+  <div class="session-shell">
+
+    <div class="session-header">
+
+      <button
+        class="back-btn"
+        type="button"
+        onclick="goHome()">
+        ←
+      </button>
+
+      <div class="session-heading">
+
+        <strong id="sessionDay">
+          Day 1
+        </strong>
+
+        <span id="sessionType">
+          ☀️ Morning
+        </span>
+
+      </div>
+
+      <div
+        id="sessionCounter"
+        class="session-counter">
+        1 / 17
+      </div>
+
+    </div>
+
+
+    <div class="session-progress-wrap">
+
+      <div class="session-progress-track">
+
+        <div
+          id="sessionProgress"
+          class="session-progress-fill">
+        </div>
+
+      </div>
+
+      <div
+        id="sessionProgressText"
+        class="session-progress-text">
+        0 / 17 completed
+      </div>
+
+    </div>
+
+
+    <div class="affirmation-card">
+
+      <div
+        id="affirmationNumber"
+        class="affirmation-number">
+        1
+      </div>
+
+      <div
         id="affirmationText"
-        class="affirmation-text"
-      ></div>
+        class="affirmation-text">
+        —
+      </div>
 
-
-      <div class="affirmation-divider"></div>
-
+      <div class="practice-tip">
+        Read slowly, focus on the meaning, and practice with awareness
+      </div>
 
       <button
         id="doneButton"
-        class="done-button"
-        onclick="markDone()"
-      >
+        class="done-btn"
+        type="button"
+        onclick="markDone()">
         ✓ ဖတ်ပြီးပါပြီ
       </button>
 
-    </section>
+    </div>
 
 
-    <!-- SESSION TIPS -->
-
-    <section class="practice-tip">
-
-      <span>💡</span>
-
-      <div>
-        <strong>Practice Tip</strong>
-
-        <p>
-          စိတ်အေးအေးထားပြီး စာသားကို ဖြည်းဖြည်းဖတ်ပါ
-        </p>
-      </div>
-
-    </section>
-
-
-    <!-- NAVIGATION -->
-
-    <div class="navigation-buttons">
+    <div class="session-nav">
 
       <button
-        onclick="previousAffirmation()"
-        class="nav-btn"
         id="previousButton"
-      >
+        class="secondary-btn"
+        type="button"
+        onclick="previousAffirmation()">
         ← Previous
       </button>
 
       <button
-        onclick="nextAffirmation()"
-        class="nav-btn primary"
         id="nextButton"
-      >
+        class="secondary-btn"
+        type="button"
+        onclick="nextAffirmation()">
         Next →
       </button>
 
@@ -466,146 +1811,344 @@
 
 
     <button
-      onclick="finishSession()"
-      class="finish-session-button"
-    >
+      class="primary-btn"
+      type="button"
+      onclick="finishSession()">
       Complete Session
     </button>
 
-  </main>
+  </div>
+
+</section>
 
 
-  <!-- ================= COMPLETE SCREEN ================= -->
+<!-- =====================================================
+     COMPLETE SCREEN
+===================================================== -->
 
-  <main id="completeScreen" class="hidden">
+<section
+  id="completeScreen"
+  class="hidden">
+
+  <div class="complete-shell">
 
     <div class="complete-card">
-
-      <div class="complete-glow"></div>
 
       <div class="trophy">
         🏆
       </div>
 
-      <div class="eyebrow">
-        PRACTICE COMPLETE
-      </div>
+      <h2
+        id="completeTitle"
+        class="complete-title">
+        Practice Complete
+      </h2>
 
-      <h1 id="completeTitle">
-        Morning Complete
-      </h1>
-
-      <p id="completeMessage">
-        Great work. Keep building your daily practice
+      <p
+        id="completeMessage"
+        class="complete-message">
+        Keep going
       </p>
 
 
       <div class="complete-stats">
 
-        <div>
+        <div class="complete-stat">
           <strong id="completeDayNumber">
             Day 1
           </strong>
-
           <span>Current Day</span>
         </div>
 
-
-        <div>
+        <div class="complete-stat">
           <strong id="completeStreak">
-            1
+            0
           </strong>
-
-          <span>Day Streak</span>
+          <span>Streak</span>
         </div>
 
       </div>
 
 
       <button
-        class="complete-button"
-        onclick="continueAfterComplete()"
-      >
-        Continue →
+        class="primary-btn"
+        type="button"
+        onclick="continueAfterComplete()">
+        Continue
       </button>
 
-
       <button
-        class="secondary-button"
-        onclick="goHome()"
-      >
+        class="secondary-btn"
+        style="width:100%;margin-top:10px"
+        type="button"
+        onclick="goHome()">
         Back to Dashboard
       </button>
 
     </div>
 
-  </main>
+  </div>
+
+</section>
 
 
-  <!-- ================= CERTIFICATE ================= -->
+<!-- =====================================================
+     CERTIFICATE SCREEN
+===================================================== -->
 
-  <main id="certificateScreen" class="hidden">
+<section
+  id="certificateScreen"
+  class="hidden">
+
+  <div class="certificate-shell">
 
     <div class="certificate-card">
 
-      <div class="certificate-stars">
-        ✦ ✦ ✦
+      <div class="certificate-label">
+        COMPLETION CERTIFICATE
       </div>
 
-      <div class="certificate-logo">
-        🌟
-      </div>
-
-      <div class="eyebrow">
-        21-DAY JOURNEY
-      </div>
-
-      <h1>
-        Journey Complete
-      </h1>
-
-      <p class="certificate-subtitle">
-        Congratulations on completing your 21-Day Abundance Journey
-      </p>
-
+      <h2 class="certificate-title">
+        21-Day Abundance
+      </h2>
 
       <div class="certificate-name">
         Aung Zar Ni Win
       </div>
 
-
-      <div class="certificate-line"></div>
-
-
-      <div class="certificate-date" id="certificateDate">
-        Completed
+      <div
+        id="certificateDate"
+        class="certificate-date">
+        Completed —
       </div>
 
 
-      <div class="certificate-badges">
+      <div class="badges">
 
-        <span>✓ 21 Days</span>
-        <span>✓ Morning</span>
-        <span>✓ Night</span>
+        <div class="badge">
+          ✓ 21 Days
+        </div>
+
+        <div class="badge">
+          ☀️ Morning
+        </div>
+
+        <div class="badge">
+          🌙 Night
+        </div>
 
       </div>
 
 
       <button
-        class="complete-button"
-        onclick="goHome()"
-      >
+        class="primary-btn"
+        type="button"
+        onclick="goHome()">
         Return to Dashboard
       </button>
 
     </div>
 
-  </main>
+  </div>
 
-</div>
+</section>
+
+
+</main>
 
 
 <script src="app.js"></script>
+
+<script>
+/* =========================================================
+   DASHBOARD ENHANCEMENT
+========================================================= */
+
+function updateDashboardExtras(){
+
+  if(typeof appData === "undefined"){
+    return;
+  }
+
+  const day =
+    Number(appData.currentDay) || 1;
+
+  const dayNumber =
+    document.getElementById("heroDayNumber");
+
+  const dayNumber2 =
+    document.getElementById("heroDayNumber2");
+
+  if(dayNumber){
+    dayNumber.textContent = day;
+  }
+
+  if(dayNumber2){
+    dayNumber2.textContent = day;
+  }
+
+
+  /* =========================
+     JOURNAL PREVIEW
+  ========================= */
+
+  if(typeof getJournal === "function"){
+
+    const journal =
+      getJournal(day);
+
+    const intention =
+      document.getElementById(
+        "dashboardIntention"
+      );
+
+    const action =
+      document.getElementById(
+        "dashboardAction"
+      );
+
+    if(intention){
+
+      intention.textContent =
+        journal.intention.trim()
+          ? journal.intention
+          : "No intention added yet";
+
+    }
+
+    if(action){
+
+      action.textContent =
+        journal.action.trim()
+          ? journal.action
+          : "No action added yet";
+
+    }
+
+  }
+
+
+  /* =========================
+     ACHIEVEMENTS
+  ========================= */
+
+  const overall =
+    typeof calculateOverallProgress === "function"
+      ? calculateOverallProgress()
+      : {completed:0};
+
+  const streak =
+    typeof calculateStreak === "function"
+      ? calculateStreak()
+      : 0;
+
+  const completedDays =
+    typeof countCompletedDays === "function"
+      ? countCompletedDays()
+      : 0;
+
+
+  setAchievement(
+    "achievementStarted",
+    overall.completed > 0
+  );
+
+  setAchievement(
+    "achievement3",
+    streak >= 3
+  );
+
+  setAchievement(
+    "achievement7",
+    completedDays >= 7
+  );
+
+  setAchievement(
+    "achievement21",
+    completedDays >= 21
+  );
+
+}
+
+
+function setAchievement(id,unlocked){
+
+  const card =
+    document.getElementById(id);
+
+  if(!card){
+    return;
+  }
+
+  const status =
+    card.querySelector(
+      ".achievement-status"
+    );
+
+  if(unlocked){
+
+    card.classList.remove("locked");
+
+    if(status){
+      status.textContent =
+        "✓ Unlocked";
+    }
+
+  }else{
+
+    card.classList.add("locked");
+
+    if(status){
+      status.textContent =
+        "Locked";
+    }
+
+  }
+
+}
+
+
+/* =========================================================
+   KEEP DASHBOARD IN SYNC
+========================================================= */
+
+const originalUpdateHome =
+  window.updateHome;
+
+if(typeof originalUpdateHome === "function"){
+
+  window.updateHome =
+    function(){
+
+      originalUpdateHome.apply(
+        this,
+        arguments
+      );
+
+      updateDashboardExtras();
+
+    };
+
+}
+
+
+/* =========================================================
+   INITIAL DASHBOARD REFRESH
+========================================================= */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  function(){
+
+    setTimeout(
+      updateDashboardExtras,
+      50
+    );
+
+  }
+);
+
+</script>
 
 </body>
 </html>
