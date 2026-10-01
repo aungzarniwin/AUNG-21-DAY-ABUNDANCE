@@ -1,1334 +1,876 @@
 /* =========================================================
+   AUNG 21-DAY ABUNDANCE
    IMPORTANT VIP
    PREMIUM MOBILE NOTE SYSTEM
    ---------------------------------------------------------
-   LocalStorage
-   Add / Edit / Update / Delete
-   Pin / Search / Category
-   Mobile App Style
+   Features:
+   - Add Important Notes
+   - Edit / Update
+   - Delete
+   - Pin / Unpin
+   - Search
+   - Category
+   - Teacher Notes
+   - LocalStorage
+   - Mobile Bottom Sheet
+   - Premium UI
+   - Safe HTML Rendering
+   - Duplicate Script Protection
 ========================================================= */
 
 (function () {
-
   "use strict";
 
-  const VIP_STORAGE_KEY =
-    "aung21_important_vip_v1";
+  /* =======================================================
+     CONFIG
+  ======================================================= */
+
+  const VIP_STORAGE_KEY = "aung21_important_vip_v1";
+
+  const VIP_CATEGORIES = [
+    "Teacher",
+    "Mindset",
+    "Money",
+    "Business",
+    "Personal",
+    "Other"
+  ];
 
   let importantVIPNotes = [];
-
   let vipEditingId = null;
+  let previousBodyOverflow = "";
 
 
   /* =======================================================
      STORAGE
   ======================================================= */
 
+  function createVIPId() {
+    return (
+      "vip_" +
+      Date.now().toString(36) +
+      "_" +
+      Math.random().toString(36).slice(2, 9)
+    );
+  }
+
+
+  function isValidDate(value) {
+    if (!value) return false;
+
+    const date = new Date(value);
+
+    return !Number.isNaN(date.getTime());
+  }
+
+
+  function normalizeVIPNote(item) {
+    if (!item || typeof item !== "object") {
+      return null;
+    }
+
+    const title =
+      typeof item.title === "string"
+        ? item.title.trim()
+        : "";
+
+    const note =
+      typeof item.note === "string"
+        ? item.note.trim()
+        : "";
+
+    if (!note) {
+      return null;
+    }
+
+    const category =
+      VIP_CATEGORIES.includes(item.category)
+        ? item.category
+        : "Other";
+
+    const createdAt =
+      isValidDate(item.createdAt)
+        ? item.createdAt
+        : new Date().toISOString();
+
+    const updatedAt =
+      isValidDate(item.updatedAt)
+        ? item.updatedAt
+        : createdAt;
+
+    return {
+      id:
+        typeof item.id === "string" && item.id
+          ? item.id
+          : createVIPId(),
+
+      title:
+        title || "Important Note",
+
+      category,
+
+      note,
+
+      pinned:
+        Boolean(item.pinned),
+
+      createdAt,
+
+      updatedAt
+    };
+  }
+
+
   function loadVIPNotes() {
-
     try {
-
       const raw =
-        localStorage.getItem(
-          VIP_STORAGE_KEY
-        );
+        localStorage.getItem(VIP_STORAGE_KEY);
 
       if (!raw) {
-
-        return [];
-
+        importantVIPNotes = [];
+        return;
       }
 
-      const parsed =
-        JSON.parse(raw);
+      const parsed = JSON.parse(raw);
 
       if (!Array.isArray(parsed)) {
-
-        return [];
-
+        importantVIPNotes = [];
+        return;
       }
 
-      return parsed.filter(
-        item =>
-          item &&
-          typeof item === "object"
-      );
+      importantVIPNotes = parsed
+        .map(normalizeVIPNote)
+        .filter(Boolean);
 
     } catch (error) {
-
       console.warn(
-        "Important VIP load failed",
+        "IMPORTANT VIP load error:",
         error
       );
 
-      return [];
-
+      importantVIPNotes = [];
     }
-
   }
 
 
   function saveVIPNotes() {
-
     try {
-
       localStorage.setItem(
         VIP_STORAGE_KEY,
-        JSON.stringify(
-          importantVIPNotes
-        )
+        JSON.stringify(importantVIPNotes)
       );
 
       return true;
 
     } catch (error) {
-
       console.warn(
-        "Important VIP save failed",
+        "IMPORTANT VIP save error:",
         error
       );
 
+      showVIPToast(
+        "Unable to save note"
+      );
+
       return false;
-
     }
-
   }
 
 
   /* =======================================================
-     ID
-  ======================================================= */
-
-  function createVIPId() {
-
-    return (
-      Date.now().toString(36) +
-      "_" +
-      Math.random()
-        .toString(36)
-        .substring(2, 10)
-    );
-
-  }
-
-
-  /* =======================================================
-     HTML SAFETY
+     HELPERS
   ======================================================= */
 
   function escapeVIPHTML(value) {
-
-    return String(value || "")
+    return String(value ?? "")
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
-
   }
 
-
-  /* =======================================================
-     DATE
-  ======================================================= */
 
   function formatVIPDate(value) {
-
     try {
+      const date = new Date(value);
 
-      return new Date(value)
-        .toLocaleString(
-          "en-GB",
-          {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit"
-          }
-        );
+      if (Number.isNaN(date.getTime())) {
+        return "";
+      }
+
+      return date.toLocaleString(
+        undefined,
+        {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit"
+        }
+      );
 
     } catch (error) {
-
       return "";
-
     }
+  }
 
+
+  function getCategoryIcon(category) {
+    const icons = {
+      Teacher: "🎓",
+      Mindset: "🧠",
+      Money: "💰",
+      Business: "💼",
+      Personal: "❤️",
+      Other: "📌"
+    };
+
+    return icons[category] || "📌";
+  }
+
+
+  function getCategoryColorClass(category) {
+    return (
+      "vip-category-" +
+      String(category || "Other")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+    );
   }
 
 
   /* =======================================================
-     PREMIUM CSS
+     CSS
   ======================================================= */
 
   function injectVIPStyles() {
 
     if (
       document.getElementById(
-        "importantVIPPremiumStyles"
+        "importantVIPStyles"
       )
     ) {
-
       return;
-
     }
 
     const style =
       document.createElement("style");
 
     style.id =
-      "importantVIPPremiumStyles";
+      "importantVIPStyles";
 
     style.textContent = `
 
-      /* ==========================================
-         VIP QUICK BUTTON
-      ========================================== */
+      /* ================================================
+         IMPORTANT VIP
+      ================================================ */
 
-      .vip-quick-button {
-
-        position: relative;
-
+      #importantVIPSection {
+        width: 100%;
+        margin: 18px 0 24px;
+        box-sizing: border-box;
       }
 
-
-      .vip-quick-button::after {
-
-        content: "VIP";
-
-        position: absolute;
-
-        top: 6px;
-
-        right: 7px;
-
-        font-size: 8px;
-
-        font-weight: 900;
-
-        padding: 3px 5px;
-
-        border-radius: 999px;
-
-        background: #fff2b8;
-
-        color: #755713;
-
-        border: 1px solid #e2c95c;
-
-      }
-
-
-      /* ==========================================
-         VIP SECTION
-      ========================================== */
-
-      .vip-section {
-
-        margin-top: 22px;
-
+      .vip-main-card {
         position: relative;
-
         overflow: hidden;
-
-        border-radius: 26px;
-
+        border-radius: 24px;
         padding: 18px;
-
         background:
           linear-gradient(
             145deg,
-            #ffffff 0%,
-            #fcfaff 52%,
-            #fffaf0 100%
+            rgba(38, 25, 61, 0.98),
+            rgba(19, 16, 31, 0.98)
           );
-
-        border: 1px solid #e8e0f0;
-
+        border: 1px solid rgba(255, 215, 100, 0.20);
         box-shadow:
-          0 16px 45px
-          rgba(54,39,105,.10);
-
+          0 16px 45px rgba(0,0,0,.20),
+          inset 0 1px 0 rgba(255,255,255,.04);
       }
 
-
-      .vip-section::before {
-
+      .vip-main-card::before {
         content: "";
-
         position: absolute;
-
-        width: 190px;
-
-        height: 190px;
-
+        width: 180px;
+        height: 180px;
+        right: -90px;
+        top: -90px;
         border-radius: 50%;
-
-        top: -100px;
-
-        right: -70px;
-
         background:
           radial-gradient(
             circle,
-            rgba(222,190,70,.20),
+            rgba(255, 206, 84, .22),
             transparent 68%
           );
-
         pointer-events: none;
-
       }
-
-
-      .vip-section::after {
-
-        content: "";
-
-        position: absolute;
-
-        width: 130px;
-
-        height: 130px;
-
-        border-radius: 50%;
-
-        bottom: -85px;
-
-        left: -70px;
-
-        background:
-          radial-gradient(
-            circle,
-            rgba(109,74,255,.10),
-            transparent 68%
-          );
-
-        pointer-events: none;
-
-      }
-
-
-      /* ==========================================
-         HEADER
-      ========================================== */
 
       .vip-header {
-
         position: relative;
-
         z-index: 2;
-
         display: flex;
-
         align-items: center;
-
         justify-content: space-between;
-
         gap: 12px;
-
         margin-bottom: 16px;
-
       }
 
-
-      .vip-brand {
-
+      .vip-header-left {
         display: flex;
-
         align-items: center;
-
         gap: 12px;
-
         min-width: 0;
-
       }
 
-
-      .vip-icon {
-
-        width: 50px;
-
-        height: 50px;
-
-        flex: 0 0 50px;
-
+      .vip-crown {
+        width: 46px;
+        height: 46px;
+        flex: 0 0 46px;
         display: flex;
-
         align-items: center;
-
         justify-content: center;
-
-        border-radius: 17px;
-
-        font-size: 25px;
-
+        border-radius: 15px;
+        font-size: 23px;
         background:
           linear-gradient(
             145deg,
-            #fff5bc,
-            #e9c94e
+            #ffd76a,
+            #b87b12
           );
-
-        border: 1px solid #dfc14f;
-
         box-shadow:
-          0 9px 25px
-          rgba(191,145,25,.20);
-
+          0 8px 20px rgba(231, 172, 45, .24);
       }
-
 
       .vip-heading {
-
         min-width: 0;
-
       }
 
-
-      .vip-heading h2 {
-
+      .vip-heading-title {
         margin: 0;
-
-        color: #241e32;
-
-        font-size: 18px;
-
-        font-weight: 950;
-
-        letter-spacing: -.2px;
-
+        color: #fff;
+        font-size: 17px;
+        font-weight: 800;
+        letter-spacing: .3px;
       }
 
-
-      .vip-heading p {
-
-        margin: 3px 0 0;
-
-        color: #817a8b;
-
+      .vip-heading-subtitle {
+        margin-top: 4px;
+        color: rgba(255,255,255,.58);
         font-size: 11px;
-
-        line-height: 1.5;
-
+        line-height: 1.4;
       }
 
-
-      .vip-total {
-
-        min-width: 38px;
-
-        height: 32px;
-
-        padding: 0 10px;
-
-        border-radius: 999px;
-
-        display: flex;
-
-        align-items: center;
-
-        justify-content: center;
-
-        background: #fff6cd;
-
-        border: 1px solid #ead477;
-
-        color: #705517;
-
-        font-size: 12px;
-
-        font-weight: 950;
-
-      }
-
-
-      /* ==========================================
-         ADD BUTTON
-      ========================================== */
-
-      .vip-add-button {
-
-        width: 100%;
-
+      .vip-add-top {
         border: 0;
-
-        padding: 14px 16px;
-
-        border-radius: 17px;
-
-        display: flex;
-
-        align-items: center;
-
-        justify-content: center;
-
-        gap: 8px;
-
-        color: #ffffff;
-
+        min-width: 42px;
+        height: 42px;
+        padding: 0 13px;
+        border-radius: 14px;
+        cursor: pointer;
+        color: #1d1405;
+        font-size: 19px;
+        font-weight: 900;
         background:
           linear-gradient(
             135deg,
-            #7352ff,
-            #4f35c9
+            #ffe59a,
+            #e8b53d
           );
-
         box-shadow:
-          0 12px 28px
-          rgba(79,53,201,.24);
-
-        font-size: 14px;
-
-        font-weight: 900;
-
-        cursor: pointer;
-
-        transition:
-          transform .15s ease,
-          box-shadow .15s ease;
-
+          0 7px 18px rgba(222,171,55,.20);
       }
-
-
-      .vip-add-button:active {
-
-        transform:
-          translateY(1px)
-          scale(.985);
-
-        box-shadow:
-          0 7px 17px
-          rgba(79,53,201,.20);
-
-      }
-
-
-      /* ==========================================
-         SEARCH
-      ========================================== */
 
       .vip-search-wrap {
-
         position: relative;
-
-        margin-top: 12px;
-
-        margin-bottom: 13px;
-
+        z-index: 2;
+        margin-bottom: 14px;
       }
-
 
       .vip-search-icon {
-
         position: absolute;
-
-        left: 13px;
-
+        left: 14px;
         top: 50%;
-
-        transform:
-          translateY(-50%);
-
+        transform: translateY(-50%);
         font-size: 15px;
-
+        opacity: .55;
         pointer-events: none;
-
       }
 
-
-      .vip-search {
-
+      #vipSearchInput {
         width: 100%;
-
-        box-sizing: border-box;
-
         height: 46px;
-
-        padding:
-          0 13px 0 39px;
-
-        border-radius: 15px;
-
-        border: 1px solid #e7e0ef;
-
-        background: rgba(
-          255,
-          255,
-          255,
-          .92
-        );
-
-        color: #272130;
-
+        box-sizing: border-box;
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,.08);
         outline: none;
-
+        padding: 0 14px 0 40px;
+        color: #fff;
+        background: rgba(255,255,255,.055);
         font-size: 13px;
-
-        font-family: inherit;
-
-        transition:
-          border-color .15s ease,
-          box-shadow .15s ease;
-
       }
 
-
-      .vip-search:focus {
-
-        border-color: #9a88ef;
-
-        box-shadow:
-          0 0 0 4px
-          rgba(109,74,255,.08);
-
+      #vipSearchInput::placeholder {
+        color: rgba(255,255,255,.38);
       }
 
+      #vipSearchInput:focus {
+        border-color: rgba(255,214,102,.45);
+        background: rgba(255,255,255,.075);
+      }
 
-      /* ==========================================
-         NOTE LIST
-      ========================================== */
-
-      .vip-list {
-
+      .vip-notes-list {
         position: relative;
-
         z-index: 2;
-
-        display: grid;
-
+        display: flex;
+        flex-direction: column;
         gap: 11px;
-
       }
 
-
-      .vip-note {
-
+      .vip-note-card {
         position: relative;
-
         overflow: hidden;
-
         padding: 15px;
-
-        border-radius: 19px;
-
-        background: #ffffff;
-
-        border: 1px solid #ebe5f1;
-
-        box-shadow:
-          0 7px 23px
-          rgba(47,35,85,.06);
-
-        animation:
-          vipNoteIn .2s ease;
-
-      }
-
-
-      @keyframes vipNoteIn {
-
-        from {
-
-          opacity: 0;
-
-          transform:
-            translateY(5px);
-
-        }
-
-        to {
-
-          opacity: 1;
-
-          transform:
-            translateY(0);
-
-        }
-
-      }
-
-
-      .vip-note.pinned {
-
-        border-color: #e0c65e;
-
+        border-radius: 18px;
         background:
           linear-gradient(
             145deg,
-            #fffdf4,
-            #ffffff
+            rgba(255,255,255,.065),
+            rgba(255,255,255,.025)
           );
-
-        box-shadow:
-          0 8px 25px
-          rgba(186,145,34,.11);
-
+        border: 1px solid rgba(255,255,255,.075);
       }
 
+      .vip-note-card.is-pinned {
+        border-color:
+          rgba(255,211,89,.32);
+        box-shadow:
+          0 8px 25px rgba(231,178,49,.08);
+      }
 
-      .vip-note.pinned::before {
+      .vip-note-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+      }
 
-        content: "";
+      .vip-note-title-wrap {
+        min-width: 0;
+        flex: 1;
+      }
 
-        position: absolute;
+      .vip-note-title {
+        margin: 0;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 800;
+        line-height: 1.35;
+        word-break: break-word;
+      }
 
-        left: 0;
+      .vip-note-meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        margin-top: 7px;
+      }
 
-        top: 0;
+      .vip-category {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 5px 8px;
+        border-radius: 999px;
+        color: #f6e5b0;
+        background: rgba(255,207,83,.09);
+        border: 1px solid rgba(255,207,83,.15);
+        font-size: 10px;
+        font-weight: 700;
+      }
 
-        bottom: 0;
+      .vip-date {
+        color: rgba(255,255,255,.38);
+        font-size: 10px;
+      }
 
-        width: 4px;
+      .vip-pin-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 25px;
+        height: 25px;
+        border-radius: 9px;
+        background: rgba(255,211,89,.10);
+        font-size: 12px;
+      }
 
+      .vip-note-body {
+        margin-top: 12px;
+        color: rgba(255,255,255,.82);
+        font-size: 13px;
+        line-height: 1.65;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .vip-note-actions {
+        display: flex;
+        gap: 7px;
+        margin-top: 13px;
+      }
+
+      .vip-action-btn {
+        min-height: 34px;
+        padding: 0 11px;
+        border: 1px solid rgba(255,255,255,.08);
+        border-radius: 10px;
+        cursor: pointer;
+        color: rgba(255,255,255,.78);
+        background: rgba(255,255,255,.045);
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .vip-action-btn:hover {
+        background: rgba(255,255,255,.08);
+      }
+
+      .vip-action-btn.vip-pin-active {
+        color: #f8d77a;
+        border-color: rgba(255,215,100,.20);
+      }
+
+      .vip-action-btn.vip-delete {
+        color: #ff9c9c;
+      }
+
+      .vip-empty {
+        padding: 26px 16px;
+        text-align: center;
+        border-radius: 17px;
+        border: 1px dashed rgba(255,255,255,.10);
+        background: rgba(255,255,255,.025);
+      }
+
+      .vip-empty-icon {
+        font-size: 31px;
+        margin-bottom: 8px;
+      }
+
+      .vip-empty-title {
+        color: rgba(255,255,255,.82);
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .vip-empty-text {
+        margin-top: 5px;
+        color: rgba(255,255,255,.40);
+        font-size: 11px;
+        line-height: 1.5;
+      }
+
+      .vip-add-main {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        height: 46px;
+        margin-top: 14px;
+        border: 0;
+        border-radius: 14px;
+        cursor: pointer;
+        color: #211604;
+        font-size: 13px;
+        font-weight: 900;
+        background:
+          linear-gradient(
+            135deg,
+            #ffe79c,
+            #d9a62f
+          );
+      }
+
+      /* ================================================
+         QUICK ACTION
+      ================================================ */
+
+      .vip-quick-action {
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        min-height: 66px;
+        margin-top: 12px;
+        padding: 12px 14px;
+        border: 1px solid rgba(255,211,83,.17);
+        border-radius: 18px;
+        cursor: pointer;
+        text-align: left;
+        color: #fff;
+        background:
+          linear-gradient(
+            135deg,
+            rgba(81,50,122,.70),
+            rgba(42,29,63,.82)
+          );
+      }
+
+      .vip-quick-icon {
+        width: 42px;
+        height: 42px;
+        flex: 0 0 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 13px;
+        font-size: 20px;
+        background:
+          linear-gradient(
+            135deg,
+            #ffe69b,
+            #bd831b
+          );
+      }
+
+      .vip-quick-text {
+        min-width: 0;
+        flex: 1;
+      }
+
+      .vip-quick-title {
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .vip-quick-sub {
+        margin-top: 3px;
+        color: rgba(255,255,255,.47);
+        font-size: 10px;
+      }
+
+      .vip-quick-arrow {
+        font-size: 19px;
+        opacity: .55;
+      }
+
+      /* ================================================
+         MODAL / BOTTOM SHEET
+      ================================================ */
+
+      #vipModal {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        display: none;
+        align-items: flex-end;
+        justify-content: center;
+        padding: 0;
+        background: rgba(0,0,0,.64);
+        backdrop-filter: blur(7px);
+        -webkit-backdrop-filter: blur(7px);
+      }
+
+      #vipModal.vip-modal-open {
+        display: flex;
+      }
+
+      .vip-sheet {
+        width: 100%;
+        max-width: 620px;
+        max-height: 92vh;
+        overflow-y: auto;
+        box-sizing: border-box;
+        padding:
+          10px
+          18px
+          calc(20px + env(safe-area-inset-bottom));
+        border-radius: 28px 28px 0 0;
         background:
           linear-gradient(
             180deg,
-            #e6c84e,
-            #b78a17
+            #21172d,
+            #120f18
           );
-
-      }
-
-
-      .vip-note-header {
-
-        display: flex;
-
-        align-items: flex-start;
-
-        justify-content: space-between;
-
-        gap: 10px;
-
-      }
-
-
-      .vip-note-title {
-
-        margin: 0;
-
-        color: #272131;
-
-        font-size: 15px;
-
-        font-weight: 950;
-
-        line-height: 1.45;
-
-      }
-
-
-      .vip-note-pin {
-
-        flex: 0 0 auto;
-
-        font-size: 17px;
-
-      }
-
-
-      /* ==========================================
-         BADGES
-      ========================================== */
-
-      .vip-badges {
-
-        display: flex;
-
-        flex-wrap: wrap;
-
-        gap: 6px;
-
-        margin-top: 8px;
-
-      }
-
-
-      .vip-badge {
-
-        display: inline-flex;
-
-        align-items: center;
-
-        padding: 5px 8px;
-
-        border-radius: 999px;
-
-        font-size: 9px;
-
-        font-weight: 900;
-
-        color: #625b6d;
-
-        background: #f5f2f8;
-
-      }
-
-
-      .vip-badge.gold {
-
-        color: #725714;
-
-        background: #fff5c9;
-
-        border: 1px solid #efdc86;
-
-      }
-
-
-      /* ==========================================
-         NOTE BODY
-      ========================================== */
-
-      .vip-note-body {
-
-        margin-top: 12px;
-
-        color: #4d4659;
-
-        font-size: 13px;
-
-        line-height: 1.75;
-
-        white-space: pre-wrap;
-
-        word-break: break-word;
-
-      }
-
-
-      .vip-note-date {
-
-        margin-top: 11px;
-
-        color: #99919f;
-
-        font-size: 9px;
-
-      }
-
-
-      /* ==========================================
-         ACTIONS
-      ========================================== */
-
-      .vip-actions {
-
-        display: flex;
-
-        gap: 7px;
-
-        margin-top: 12px;
-
-      }
-
-
-      .vip-action {
-
-        flex: 1;
-
-        min-height: 36px;
-
-        padding: 7px 8px;
-
-        border-radius: 11px;
-
-        border: 1px solid #e7e1ed;
-
-        background: #faf9fc;
-
-        color: #5b5465;
-
-        font-size: 10px;
-
-        font-weight: 900;
-
-        cursor: pointer;
-
-      }
-
-
-      .vip-action.pin {
-
-        color: #725716;
-
-        background: #fff9e1;
-
-        border-color: #ebd889;
-
-      }
-
-
-      .vip-action.delete {
-
-        color: #b43f3f;
-
-        background: #fff8f8;
-
-      }
-
-
-      .vip-action:active {
-
-        transform:
-          scale(.97);
-
-      }
-
-
-      /* ==========================================
-         EMPTY
-      ========================================== */
-
-      .vip-empty {
-
-        padding: 30px 16px;
-
-        text-align: center;
-
-        border-radius: 19px;
-
-        border: 1px dashed #ddd5e7;
-
-        background:
-          rgba(
-            255,
-            255,
-            255,
-            .70
-          );
-
-      }
-
-
-      .vip-empty-icon {
-
-        font-size: 32px;
-
-        margin-bottom: 9px;
-
-      }
-
-
-      .vip-empty-title {
-
-        color: #443c50;
-
-        font-size: 13px;
-
-        font-weight: 900;
-
-      }
-
-
-      .vip-empty-text {
-
-        margin-top: 6px;
-
-        color: #8b8492;
-
-        font-size: 11px;
-
-        line-height: 1.6;
-
-      }
-
-
-      /* ==========================================
-         MODAL
-      ========================================== */
-
-      .vip-modal {
-
-        position: fixed;
-
-        inset: 0;
-
-        z-index: 99999;
-
-        display: none;
-
-        align-items: flex-end;
-
-        justify-content: center;
-
-        background:
-          rgba(
-            27,
-            21,
-            42,
-            .48
-          );
-
-        backdrop-filter:
-          blur(6px);
-
-        -webkit-backdrop-filter:
-          blur(6px);
-
-        padding: 0;
-
-      }
-
-
-      .vip-modal.show {
-
-        display: flex;
-
-        animation:
-          vipFadeIn .18s ease;
-
-      }
-
-
-      @keyframes vipFadeIn {
-
-        from {
-
-          opacity: 0;
-
-        }
-
-        to {
-
-          opacity: 1;
-
-        }
-
-      }
-
-
-      .vip-sheet {
-
-        width: 100%;
-
-        max-width: 620px;
-
-        max-height: 91vh;
-
-        overflow-y: auto;
-
-        background:
-          linear-gradient(
-            145deg,
-            #ffffff,
-            #faf8ff
-          );
-
-        border-radius:
-          28px 28px 0 0;
-
-        padding:
-          10px 18px
-          calc(
-            20px +
-            env(safe-area-inset-bottom)
-          );
-
+        border-top: 1px solid rgba(255,215,100,.18);
         box-shadow:
-          0 -20px 60px
-          rgba(20,15,40,.22);
-
+          0 -20px 60px rgba(0,0,0,.38);
         animation:
-          vipSheetUp .22s ease;
-
+          vipSheetUp .22s ease-out;
       }
-
 
       @keyframes vipSheetUp {
-
         from {
-
-          transform:
-            translateY(100%);
-
+          transform: translateY(35px);
+          opacity: .5;
         }
 
         to {
-
-          transform:
-            translateY(0);
-
+          transform: translateY(0);
+          opacity: 1;
         }
-
       }
-
 
       .vip-sheet-handle {
-
-        width: 42px;
-
+        width: 44px;
         height: 4px;
-
+        margin: 0 auto 17px;
         border-radius: 999px;
-
-        background: #d9d3df;
-
-        margin: 2px auto 17px;
-
+        background: rgba(255,255,255,.18);
       }
 
-
-      .vip-sheet-header {
-
-        display: flex;
-
-        align-items: center;
-
-        justify-content: space-between;
-
-        gap: 10px;
-
-        margin-bottom: 18px;
-
-      }
-
-
-      .vip-sheet-title {
-
-        margin: 0;
-
-        color: #272131;
-
+      .vip-modal-title {
+        color: #fff;
         font-size: 18px;
-
-        font-weight: 950;
-
+        font-weight: 900;
+        margin-bottom: 5px;
       }
 
-
-      .vip-close {
-
-        width: 38px;
-
-        height: 38px;
-
-        border: 0;
-
-        border-radius: 13px;
-
-        background: #f1eef5;
-
-        color: #625a6c;
-
-        font-size: 20px;
-
-        cursor: pointer;
-
+      .vip-modal-subtitle {
+        color: rgba(255,255,255,.43);
+        font-size: 11px;
+        margin-bottom: 18px;
       }
-
 
       .vip-field {
-
-        margin-bottom: 14px;
-
+        margin-bottom: 13px;
       }
 
-
-      .vip-field label {
-
+      .vip-field-label {
         display: block;
-
         margin-bottom: 7px;
-
-        color: #5b5365;
-
+        color: rgba(255,255,255,.68);
         font-size: 11px;
-
-        font-weight: 900;
-
+        font-weight: 800;
       }
-
 
       .vip-field input,
       .vip-field select,
       .vip-field textarea {
-
         width: 100%;
-
         box-sizing: border-box;
-
-        border: 1px solid #e4ddec;
-
-        border-radius: 15px;
-
-        padding: 13px;
-
-        background: #ffffff;
-
-        color: #272131;
-
+        color: #fff;
+        background: rgba(255,255,255,.055);
+        border: 1px solid rgba(255,255,255,.09);
+        border-radius: 14px;
         outline: none;
-
-        font-size: 14px;
-
+        font-size: 13px;
         font-family: inherit;
-
       }
 
+      .vip-field input,
+      .vip-field select {
+        height: 46px;
+        padding: 0 13px;
+      }
 
       .vip-field textarea {
-
         min-height: 150px;
-
         resize: vertical;
-
-        line-height: 1.7;
-
+        padding: 12px 13px;
+        line-height: 1.6;
       }
-
 
       .vip-field input:focus,
       .vip-field select:focus,
       .vip-field textarea:focus {
-
-        border-color: #8c77eb;
-
-        box-shadow:
-          0 0 0 4px
-          rgba(109,74,255,.08);
-
+        border-color: rgba(255,215,100,.40);
+        background: rgba(255,255,255,.075);
       }
 
+      .vip-field select option {
+        background: #1e1728;
+        color: #fff;
+      }
 
-      .vip-sheet-actions {
-
-        display: flex;
-
+      .vip-modal-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
         gap: 9px;
-
-        margin-top: 4px;
-
+        margin-top: 17px;
       }
 
-
-      .vip-sheet-save,
-      .vip-sheet-cancel {
-
-        flex: 1;
-
-        min-height: 48px;
-
-        border: 0;
-
-        border-radius: 15px;
-
-        font-size: 13px;
-
-        font-weight: 950;
-
+      .vip-modal-btn {
+        height: 48px;
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,.08);
         cursor: pointer;
-
+        font-size: 13px;
+        font-weight: 900;
       }
 
+      .vip-cancel-btn {
+        color: rgba(255,255,255,.68);
+        background: rgba(255,255,255,.055);
+      }
 
-      .vip-sheet-save {
-
-        color: #ffffff;
-
+      .vip-save-btn {
+        color: #211604;
+        border: 0;
         background:
           linear-gradient(
             135deg,
-            #7352ff,
-            #4f35c9
+            #ffe79c,
+            #dca932
           );
+      }
 
+      /* ================================================
+         TOAST
+      ================================================ */
+
+      #vipToast {
+        position: fixed;
+        left: 50%;
+        bottom:
+          calc(
+            24px +
+            env(safe-area-inset-bottom)
+          );
+        z-index: 100000;
+        transform:
+          translate(-50%, 20px);
+        opacity: 0;
+        pointer-events: none;
+        padding: 11px 15px;
+        border-radius: 13px;
+        color: #fff;
+        background: rgba(24,19,31,.94);
+        border: 1px solid rgba(255,215,100,.20);
         box-shadow:
-          0 10px 24px
-          rgba(79,53,201,.22);
-
+          0 12px 30px rgba(0,0,0,.30);
+        font-size: 12px;
+        font-weight: 700;
+        transition:
+          opacity .2s ease,
+          transform .2s ease;
+        white-space: nowrap;
       }
 
-
-      .vip-sheet-cancel {
-
-        color: #5f5869;
-
-        background: #efecf4;
-
+      #vipToast.vip-toast-show {
+        opacity: 1;
+        transform:
+          translate(-50%, 0);
       }
 
-
-      /* ==========================================
+      /* ================================================
          DESKTOP
-      ========================================== */
+      ================================================ */
 
       @media (min-width: 700px) {
 
-        .vip-modal {
-
+        #vipModal {
           align-items: center;
-
           padding: 20px;
-
         }
-
 
         .vip-sheet {
-
-          border-radius: 26px;
-
-          max-height: 85vh;
-
-          box-shadow:
-            0 25px 80px
-            rgba(20,15,40,.25);
-
-        }
-
-      }
-
-
-      /* ==========================================
-         SMALL PHONE
-      ========================================== */
-
-      @media (max-width: 380px) {
-
-        .vip-section {
-
-          padding: 14px;
-
-        }
-
-
-        .vip-icon {
-
-          width: 44px;
-
-          height: 44px;
-
-          flex-basis: 44px;
-
-          border-radius: 14px;
-
-          font-size: 22px;
-
-        }
-
-
-        .vip-heading h2 {
-
-          font-size: 16px;
-
-        }
-
-
-        .vip-actions {
-
-          gap: 5px;
-
-        }
-
-
-        .vip-action {
-
-          font-size: 9px;
-
-          padding-left: 5px;
-
-          padding-right: 5px;
-
+          border-radius: 28px;
+          max-height: 88vh;
+          border: 1px solid rgba(255,215,100,.16);
         }
 
       }
@@ -1336,12 +878,11 @@
     `;
 
     document.head.appendChild(style);
-
   }
 
 
   /* =======================================================
-     CREATE SECTION
+     SECTION
   ======================================================= */
 
   function createVIPSection() {
@@ -1351,11 +892,8 @@
         "importantVIPSection"
       )
     ) {
-
       return;
-
     }
-
 
     const section =
       document.createElement("section");
@@ -1363,79 +901,75 @@
     section.id =
       "importantVIPSection";
 
-    section.className =
-      "vip-section";
-
     section.innerHTML = `
 
-      <div class="vip-header">
+      <div class="vip-main-card">
 
-        <div class="vip-brand">
+        <div class="vip-header">
 
-          <div class="vip-icon">
-            👑
+          <div class="vip-header-left">
+
+            <div class="vip-crown">
+              👑
+            </div>
+
+            <div class="vip-heading">
+
+              <h2 class="vip-heading-title">
+                IMPORTANT VIP
+              </h2>
+
+              <div class="vip-heading-subtitle">
+                Your most important notes, lessons & reminders
+              </div>
+
+            </div>
+
           </div>
 
-          <div class="vip-heading">
-
-            <h2>
-              Important VIP
-            </h2>
-
-            <p>
-              Your important notes in one place
-            </p>
-
-          </div>
+          <button
+            type="button"
+            class="vip-add-top"
+            id="vipTopAddButton"
+            aria-label="Add Important Note"
+          >
+            +
+          </button>
 
         </div>
+
+
+        <div class="vip-search-wrap">
+
+          <span class="vip-search-icon">
+            🔎
+          </span>
+
+          <input
+            id="vipSearchInput"
+            type="search"
+            placeholder="Search important notes..."
+            autocomplete="off"
+          />
+
+        </div>
+
 
         <div
-          id="vipTotal"
-          class="vip-total"
+          id="vipNotesList"
+          class="vip-notes-list"
+        ></div>
+
+
+        <button
+          type="button"
+          class="vip-add-main"
+          id="vipMainAddButton"
         >
-          0
-        </div>
+          ＋ Add Important Note
+        </button>
 
       </div>
-
-
-      <button
-        id="vipAddButton"
-        class="vip-add-button"
-        type="button"
-      >
-
-        <span>＋</span>
-
-        <span>
-          Add Important Note
-        </span>
-
-      </button>
-
-
-      <div class="vip-search-wrap">
-
-        <span class="vip-search-icon">
-          🔎
-        </span>
-
-        <input
-          id="vipSearchInput"
-          class="vip-search"
-          type="search"
-          autocomplete="off"
-          placeholder="Search your important notes..."
-        >
-
-      </div>
-
-
-      <div
-        id="vipNotesList"
-        class="vip-list"
-      ></div>
 
     `;
 
@@ -1445,72 +979,150 @@
         ".quick-grid"
       );
 
-    const homeScreen =
-      document.getElementById(
-        "homeScreen"
-      );
-
 
     if (quickGrid) {
 
-      /*
-        Add Quick Action
-      */
-
-      const quickButton =
-        document.createElement(
-          "button"
-        );
-
-      quickButton.type =
-        "button";
-
-      quickButton.className =
-        "quick-btn vip-quick-button";
-
-      quickButton.innerHTML = `
-        <span>👑</span>
-        Important VIP
-      `;
-
-      quickButton.addEventListener(
-        "click",
-        openImportantVIP
-      );
-
-      quickGrid.appendChild(
-        quickButton
-      );
-
-
-      /*
-        Insert section
-      */
-
-      quickGrid.parentNode.insertBefore(
-        section,
-        quickGrid.nextSibling
-      );
-
-    } else if (homeScreen) {
-
-      homeScreen.appendChild(
+      quickGrid.insertAdjacentElement(
+        "afterend",
         section
+      );
+
+      createVIPQuickAction(
+        quickGrid
       );
 
     } else {
 
-      document.body.appendChild(
-        section
-      );
+      const homeScreen =
+        document.getElementById(
+          "homeScreen"
+        );
+
+      if (homeScreen) {
+
+        homeScreen.appendChild(
+          section
+        );
+
+      } else {
+
+        document.body.appendChild(
+          section
+        );
+
+      }
 
     }
 
+
+    document
+      .getElementById(
+        "vipTopAddButton"
+      )
+      ?.addEventListener(
+        "click",
+        function () {
+          openImportantVIP();
+        }
+      );
+
+
+    document
+      .getElementById(
+        "vipMainAddButton"
+      )
+      ?.addEventListener(
+        "click",
+        function () {
+          openImportantVIP();
+        }
+      );
+
+
+    document
+      .getElementById(
+        "vipSearchInput"
+      )
+      ?.addEventListener(
+        "input",
+        function () {
+          renderVIPNotes();
+        }
+      );
+
+
+    renderVIPNotes();
   }
 
 
   /* =======================================================
-     CREATE MODAL
+     QUICK ACTION
+  ======================================================= */
+
+  function createVIPQuickAction(
+    quickGrid
+  ) {
+
+    if (
+      document.getElementById(
+        "vipQuickAction"
+      )
+    ) {
+      return;
+    }
+
+    const button =
+      document.createElement("button");
+
+    button.type = "button";
+
+    button.id =
+      "vipQuickAction";
+
+    button.className =
+      "vip-quick-action";
+
+    button.innerHTML = `
+
+      <div class="vip-quick-icon">
+        👑
+      </div>
+
+      <div class="vip-quick-text">
+
+        <div class="vip-quick-title">
+          Important VIP
+        </div>
+
+        <div class="vip-quick-sub">
+          Save important lessons, ideas & reminders
+        </div>
+
+      </div>
+
+      <div class="vip-quick-arrow">
+        ›
+      </div>
+
+    `;
+
+
+    button.addEventListener(
+      "click",
+      function () {
+        openImportantVIP();
+      }
+    );
+
+
+    quickGrid.appendChild(
+      button
+    );
+  }
+
+
+  /* =======================================================
+     MODAL
   ======================================================= */
 
   function createVIPModal() {
@@ -1520,9 +1132,7 @@
         "vipModal"
       )
     ) {
-
       return;
-
     }
 
 
@@ -1532,93 +1142,72 @@
     modal.id =
       "vipModal";
 
-    modal.className =
-      "vip-modal";
-
     modal.innerHTML = `
 
       <div
         class="vip-sheet"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="vipSheetTitle"
+        aria-labelledby="vipModalTitle"
       >
 
         <div class="vip-sheet-handle"></div>
 
+        <div
+          id="vipModalTitle"
+          class="vip-modal-title"
+        >
+          Add Important Note
+        </div>
 
-        <div class="vip-sheet-header">
-
-          <h3
-            id="vipSheetTitle"
-            class="vip-sheet-title"
-          >
-            Add Important Note
-          </h3>
-
-
-          <button
-            id="vipCloseButton"
-            class="vip-close"
-            type="button"
-            aria-label="Close"
-          >
-            ×
-          </button>
-
+        <div class="vip-modal-subtitle">
+          Keep the lessons and ideas that matter most
         </div>
 
 
         <div class="vip-field">
 
-          <label>
-            Note Title
+          <label
+            class="vip-field-label"
+            for="vipTitleInput"
+          >
+            NOTE TITLE
           </label>
 
           <input
             id="vipTitleInput"
             type="text"
-            maxlength="120"
+            maxlength="100"
+            placeholder="Example: Teacher's Important Lesson"
             autocomplete="off"
-            placeholder="ဥပမာ - ဆရာမပြောထားတဲ့ အရေးကြီးအချက်"
-          >
+          />
 
         </div>
 
 
         <div class="vip-field">
 
-          <label>
-            Category
+          <label
+            class="vip-field-label"
+            for="vipCategoryInput"
+          >
+            CATEGORY
           </label>
 
           <select
             id="vipCategoryInput"
           >
 
-            <option value="Teacher">
-              👩‍🏫 Teacher
-            </option>
+            ${VIP_CATEGORIES.map(function (category) {
 
-            <option value="Mindset">
-              🧠 Mindset
-            </option>
+              return `
+                <option value="${escapeVIPHTML(category)}">
+                  ${getCategoryIcon(category)}
+                  ${escapeVIPHTML(category)}
+                </option>
+              `;
 
-            <option value="Money">
-              💰 Money
-            </option>
-
-            <option value="Business">
-              💼 Business
-            </option>
-
-            <option value="Personal">
-              ❤️ Personal
-            </option>
-
-            <option value="Other">
-              📌 Other
-            </option>
+            }).join("")}
 
           </select>
 
@@ -1627,36 +1216,38 @@
 
         <div class="vip-field">
 
-          <label>
-            Important Note
+          <label
+            class="vip-field-label"
+            for="vipNoteInput"
+          >
+            IMPORTANT NOTE
           </label>
 
           <textarea
             id="vipNoteInput"
-            maxlength="10000"
-            placeholder="အရေးကြီးတဲ့အကြောင်းအရာကို ဒီနေရာမှာရေးပါ..."
+            maxlength="5000"
+            placeholder="Write your important lesson, idea, reminder or message here..."
           ></textarea>
 
         </div>
 
 
-        <div class="vip-sheet-actions">
+        <div class="vip-modal-actions">
 
           <button
-            id="vipSheetCancel"
-            class="vip-sheet-cancel"
             type="button"
+            class="vip-modal-btn vip-cancel-btn"
+            id="vipCancelButton"
           >
             Cancel
           </button>
 
-
           <button
-            id="vipSheetSave"
-            class="vip-sheet-save"
             type="button"
+            class="vip-modal-btn vip-save-btn"
+            id="vipSaveButton"
           >
-            ✓ Save Important
+            Save Note
           </button>
 
         </div>
@@ -1671,100 +1262,69 @@
     );
 
 
-    /*
-      Close button
-    */
-
     document
       .getElementById(
-        "vipCloseButton"
+        "vipCancelButton"
       )
-      .addEventListener(
+      ?.addEventListener(
         "click",
-        closeVIPModal
+        function () {
+          closeVIPModal();
+        }
       );
 
 
-    /*
-      Cancel
-    */
-
     document
       .getElementById(
-        "vipSheetCancel"
+        "vipSaveButton"
       )
-      .addEventListener(
+      ?.addEventListener(
         "click",
-        closeVIPModal
+        function () {
+          saveVIPNote();
+        }
       );
 
-
-    /*
-      Save
-    */
-
-    document
-      .getElementById(
-        "vipSheetSave"
-      )
-      .addEventListener(
-        "click",
-        saveVIPNote
-      );
-
-
-    /*
-      Background close
-    */
 
     modal.addEventListener(
       "click",
-      event => {
+      function (event) {
 
         if (
           event.target === modal
         ) {
-
           closeVIPModal();
-
         }
 
       }
     );
 
 
-    /*
-      Escape
-    */
-
     document.addEventListener(
       "keydown",
-      event => {
+      function (event) {
 
         if (
           event.key === "Escape" &&
           modal.classList.contains(
-            "show"
+            "vip-modal-open"
           )
         ) {
-
           closeVIPModal();
-
         }
 
       }
     );
-
   }
 
 
   /* =======================================================
-     OPEN MODAL
+     OPEN
   ======================================================= */
 
-  function openVIPModal(
-    noteId = null
-  ) {
+  function openImportantVIP() {
+
+    createVIPModal();
 
     const modal =
       document.getElementById(
@@ -1772,14 +1332,11 @@
       );
 
     if (!modal) {
-
       return;
-
     }
 
 
-    vipEditingId =
-      noteId;
+    vipEditingId = null;
 
 
     const titleInput =
@@ -1797,145 +1354,175 @@
         "vipNoteInput"
       );
 
-    const title =
+    const modalTitle =
       document.getElementById(
-        "vipSheetTitle"
+        "vipModalTitle"
       );
 
     const saveButton =
       document.getElementById(
-        "vipSheetSave"
+        "vipSaveButton"
       );
 
 
-    if (noteId) {
-
-      const note =
-        importantVIPNotes.find(
-          item =>
-            item.id === noteId
-        );
-
-      if (!note) {
-
-        return;
-
-      }
-
-
-      title.textContent =
-        "Edit Important Note";
-
-      saveButton.textContent =
-        "✓ Update Important";
-
-      titleInput.value =
-        note.title || "";
-
-      categoryInput.value =
-        note.category || "Other";
-
-      noteInput.value =
-        note.note || "";
-
-    } else {
-
-      title.textContent =
+    if (modalTitle) {
+      modalTitle.textContent =
         "Add Important Note";
+    }
 
+
+    if (saveButton) {
       saveButton.textContent =
-        "✓ Save Important";
+        "Save Note";
+    }
 
-      titleInput.value =
-        "";
 
+    if (titleInput) {
+      titleInput.value = "";
+    }
+
+
+    if (categoryInput) {
       categoryInput.value =
         "Teacher";
+    }
 
-      noteInput.value =
-        "";
 
+    if (noteInput) {
+      noteInput.value = "";
     }
 
 
     modal.classList.add(
-      "show"
+      "vip-modal-open"
     );
 
+
+    previousBodyOverflow =
+      document.body.style.overflow;
 
     document.body.style.overflow =
       "hidden";
 
 
-    setTimeout(
-      () => {
+    setTimeout(function () {
 
-        if (titleInput) {
+      titleInput?.focus();
 
-          titleInput.focus();
-
-        }
-
-      },
-      180
-    );
-
+    }, 120);
   }
 
 
   /* =======================================================
-     CLOSE MODAL
+     EDIT
   ======================================================= */
 
-  function closeVIPModal() {
+  function editVIPNote(id) {
+
+    const note =
+      importantVIPNotes.find(
+        function (item) {
+          return item.id === id;
+        }
+      );
+
+    if (!note) {
+      showVIPToast(
+        "Note not found"
+      );
+
+      return;
+    }
+
+
+    createVIPModal();
+
 
     const modal =
       document.getElementById(
         "vipModal"
       );
 
-    if (!modal) {
-
-      return;
-
-    }
-
-    modal.classList.remove(
-      "show"
-    );
-
-    document.body.style.overflow =
-      "";
-
-    vipEditingId =
-      null;
-
-  }
-
-
-  /* =======================================================
-     OPEN VIP SECTION
-  ======================================================= */
-
-  function openImportantVIP() {
-
-    const section =
+    const titleInput =
       document.getElementById(
-        "importantVIPSection"
+        "vipTitleInput"
       );
 
-    if (!section) {
+    const categoryInput =
+      document.getElementById(
+        "vipCategoryInput"
+      );
 
-      return;
+    const noteInput =
+      document.getElementById(
+        "vipNoteInput"
+      );
 
+    const modalTitle =
+      document.getElementById(
+        "vipModalTitle"
+      );
+
+    const saveButton =
+      document.getElementById(
+        "vipSaveButton"
+      );
+
+
+    vipEditingId = id;
+
+
+    if (modalTitle) {
+      modalTitle.textContent =
+        "Edit Important Note";
     }
 
 
-    section.scrollIntoView({
-      behavior: "smooth",
-      block: "start"
-    });
+    if (saveButton) {
+      saveButton.textContent =
+        "Update Note";
+    }
 
+
+    if (titleInput) {
+      titleInput.value =
+        note.title || "";
+    }
+
+
+    if (categoryInput) {
+      categoryInput.value =
+        VIP_CATEGORIES.includes(
+          note.category
+        )
+          ? note.category
+          : "Other";
+    }
+
+
+    if (noteInput) {
+      noteInput.value =
+        note.note || "";
+    }
+
+
+    modal?.classList.add(
+      "vip-modal-open"
+    );
+
+
+    previousBodyOverflow =
+      document.body.style.overflow;
+
+    document.body.style.overflow =
+      "hidden";
+
+
+    setTimeout(function () {
+
+      noteInput?.focus();
+
+    }, 120);
   }
 
 
@@ -1961,88 +1548,78 @@
       );
 
 
-    if (
-      !titleInput ||
-      !noteInput
-    ) {
-
-      return;
-
-    }
-
-
     const title =
-      titleInput.value.trim();
+      titleInput?.value.trim() || "";
 
     const category =
-      categoryInput
-        ? categoryInput.value
-        : "Other";
+      categoryInput?.value || "Other";
 
-    const note =
-      noteInput.value.trim();
+    const noteText =
+      noteInput?.value.trim() || "";
 
 
-    if (!note) {
+    if (!noteText) {
 
-      alert(
-        "Important Note ကို ဖြည့်ပေးပါ"
+      showVIPToast(
+        "Please write your important note"
       );
 
-      noteInput.focus();
+      noteInput?.focus();
 
       return;
-
     }
+
+
+    const wasEditing =
+      Boolean(vipEditingId);
 
 
     const now =
       new Date().toISOString();
 
 
-    /* ==========================================
-       UPDATE
-    ========================================== */
-
-    if (vipEditingId) {
+    if (wasEditing) {
 
       const index =
         importantVIPNotes.findIndex(
-          item =>
-            item.id ===
-            vipEditingId
+          function (item) {
+            return item.id === vipEditingId;
+          }
         );
 
 
-      if (index !== -1) {
+      if (index === -1) {
 
-        importantVIPNotes[index] = {
+        showVIPToast(
+          "Note not found"
+        );
 
-          ...importantVIPNotes[index],
+        closeVIPModal();
 
-          title:
-            title ||
-            "Important Note",
-
-          category,
-
-          note,
-
-          updatedAt:
-            now
-
-        };
-
+        return;
       }
 
-    }
+
+      importantVIPNotes[index] = {
+        ...importantVIPNotes[index],
+
+        title:
+          title || "Important Note",
+
+        category:
+          VIP_CATEGORIES.includes(category)
+            ? category
+            : "Other",
+
+        note:
+          noteText,
+
+        updatedAt:
+          now
+      };
 
 
-    /* ==========================================
-       NEW
-    ========================================== */
-
-    else {
+    } else {
 
       importantVIPNotes.unshift({
 
@@ -2050,12 +1627,15 @@
           createVIPId(),
 
         title:
-          title ||
-          "Important Note",
+          title || "Important Note",
 
-        category,
+        category:
+          VIP_CATEGORIES.includes(category)
+            ? category
+            : "Other",
 
-        note,
+        note:
+          noteText,
 
         pinned:
           false,
@@ -2071,73 +1651,57 @@
     }
 
 
-    saveVIPNotes();
+    const saved =
+      saveVIPNotes();
+
+
+    if (!saved) {
+      return;
+    }
+
 
     closeVIPModal();
 
     renderVIPNotes();
 
+
     showVIPToast(
-      vipEditingId
+      wasEditing
         ? "✓ Important Note updated"
         : "✓ Important Note saved"
     );
 
-    vipEditingId =
-      null;
 
+    vipEditingId = null;
   }
 
 
   /* =======================================================
-     EDIT
+     CLOSE MODAL
   ======================================================= */
 
-  function editVIPNote(id) {
+  function closeVIPModal() {
 
-    openVIPModal(id);
-
-  }
-
-
-  /* =======================================================
-     PIN
-  ======================================================= */
-
-  function toggleVIPPin(id) {
-
-    const note =
-      importantVIPNotes.find(
-        item =>
-          item.id === id
+    const modal =
+      document.getElementById(
+        "vipModal"
       );
 
-
-    if (!note) {
-
+    if (!modal) {
       return;
-
     }
 
 
-    note.pinned =
-      !note.pinned;
-
-    note.updatedAt =
-      new Date().toISOString();
-
-
-    saveVIPNotes();
-
-    renderVIPNotes();
-
-
-    showVIPToast(
-      note.pinned
-        ? "📌 Note pinned"
-        : "Note unpinned"
+    modal.classList.remove(
+      "vip-modal-open"
     );
 
+
+    document.body.style.overflow =
+      previousBodyOverflow;
+
+
+    vipEditingId = null;
   }
 
 
@@ -2149,35 +1713,32 @@
 
     const note =
       importantVIPNotes.find(
-        item =>
-          item.id === id
+        function (item) {
+          return item.id === id;
+        }
       );
 
-
     if (!note) {
-
       return;
-
     }
 
 
     const confirmed =
       window.confirm(
-        `"${note.title}" ကို ဖျက်မလား?`
+        "Delete this important note?"
       );
 
 
     if (!confirmed) {
-
       return;
-
     }
 
 
     importantVIPNotes =
       importantVIPNotes.filter(
-        item =>
-          item.id !== id
+        function (item) {
+          return item.id !== id;
+        }
       );
 
 
@@ -2187,30 +1748,86 @@
 
 
     showVIPToast(
-      "🗑 Important Note deleted"
+      "✓ Important Note deleted"
     );
-
   }
 
 
   /* =======================================================
-     SEARCH
+     PIN
   ======================================================= */
 
-  function getVIPSearch() {
+  function toggleVIPPin(id) {
 
-    const input =
-      document.getElementById(
-        "vipSearchInput"
+    const index =
+      importantVIPNotes.findIndex(
+        function (item) {
+          return item.id === id;
+        }
       );
 
-    return (
-      input?.value ||
-      ""
-    )
-      .trim()
-      .toLowerCase();
 
+    if (index === -1) {
+      return;
+    }
+
+
+    importantVIPNotes[index].pinned =
+      !importantVIPNotes[index].pinned;
+
+
+    importantVIPNotes[index].updatedAt =
+      new Date().toISOString();
+
+
+    saveVIPNotes();
+
+    renderVIPNotes();
+
+
+    showVIPToast(
+      importantVIPNotes[index].pinned
+        ? "📌 Note pinned"
+        : "Note unpinned"
+    );
+  }
+
+
+  /* =======================================================
+     SORT
+  ======================================================= */
+
+  function sortVIPNotes(notes) {
+
+    return [...notes].sort(
+      function (a, b) {
+
+        if (
+          Boolean(a.pinned) !==
+          Boolean(b.pinned)
+        ) {
+
+          return a.pinned
+            ? -1
+            : 1;
+        }
+
+
+        const dateA =
+          new Date(
+            a.updatedAt || a.createdAt
+          ).getTime();
+
+
+        const dateB =
+          new Date(
+            b.updatedAt || b.createdAt
+          ).getTime();
+
+
+        return dateB - dateA;
+      }
+    );
   }
 
 
@@ -2225,317 +1842,315 @@
         "vipNotesList"
       );
 
-    const total =
-      document.getElementById(
-        "vipTotal"
-      );
-
-
     if (!list) {
-
       return;
-
     }
 
 
+    const searchInput =
+      document.getElementById(
+        "vipSearchInput"
+      );
+
+
     const search =
-      getVIPSearch();
+      searchInput?.value
+        .trim()
+        .toLowerCase() || "";
 
 
     let notes =
       importantVIPNotes.filter(
-        item => {
+        function (item) {
 
           if (!search) {
-
             return true;
-
           }
 
 
-          return (
+          const searchableText =
+            [
+              item.title,
+              item.note,
+              item.category
+            ]
+              .join(" ")
+              .toLowerCase();
 
-            String(
-              item.title || ""
-            )
-            .toLowerCase()
-            .includes(search)
 
-            ||
-
-            String(
-              item.note || ""
-            )
-            .toLowerCase()
-            .includes(search)
-
-            ||
-
-            String(
-              item.category || ""
-            )
-            .toLowerCase()
-            .includes(search)
-
+          return searchableText.includes(
+            search
           );
-
         }
       );
 
 
-    /*
-      Pinned first
-    */
-
-    notes.sort(
-      (a, b) => {
-
-        if (
-          Boolean(a.pinned) !==
-          Boolean(b.pinned)
-        ) {
-
-          return a.pinned
-            ? -1
-            : 1;
-
-        }
-
-
-        return (
-          new Date(
-            b.updatedAt ||
-            b.createdAt ||
-            0
-          ) -
-          new Date(
-            a.updatedAt ||
-            a.createdAt ||
-            0
-          )
-        );
-
-      }
-    );
-
-
-    if (total) {
-
-      total.textContent =
-        importantVIPNotes.length;
-
-    }
+    notes =
+      sortVIPNotes(notes);
 
 
     if (!notes.length) {
 
-      list.innerHTML = `
+      if (search) {
 
-        <div class="vip-empty">
+        list.innerHTML = `
 
-          <div class="vip-empty-icon">
-            👑
-          </div>
+          <div class="vip-empty">
 
-          <div class="vip-empty-title">
-            ${
-              search
-                ? "No Important Notes Found"
-                : "No Important Notes Yet"
-            }
-          </div>
+            <div class="vip-empty-icon">
+              🔎
+            </div>
 
-          <div class="vip-empty-text">
+            <div class="vip-empty-title">
+              No matching notes
+            </div>
 
-            ${
-              search
-                ? "Search keyword ကို ပြန်စစ်ကြည့်ပါ"
-                : "ဆရာ/ဆရာမထံမှ အရေးကြီးတဲ့ Note တွေကို ဒီနေရာမှာ သိမ်းထားနိုင်ပါတယ်"
-            }
+            <div class="vip-empty-text">
+              Try another search word
+            </div>
 
           </div>
 
-        </div>
+        `;
 
-      `;
+      } else {
+
+        list.innerHTML = `
+
+          <div class="vip-empty">
+
+            <div class="vip-empty-icon">
+              👑
+            </div>
+
+            <div class="vip-empty-title">
+              No Important VIP notes yet
+            </div>
+
+            <div class="vip-empty-text">
+              Save the lessons, ideas and reminders
+              that are important to you
+            </div>
+
+          </div>
+
+        `;
+      }
 
       return;
-
     }
 
 
     list.innerHTML =
-      notes
-        .map(
-          item => {
+      notes.map(
+        function (item) {
 
-            const safeId =
-              escapeVIPHTML(
-                item.id
-              );
+          const category =
+            escapeVIPHTML(
+              item.category
+            );
 
-            return `
 
-              <article
-                class="
-                  vip-note
-                  ${
-                    item.pinned
-                      ? "pinned"
-                      : ""
-                  }
-                "
-              >
+          const title =
+            escapeVIPHTML(
+              item.title
+            );
 
-                <div
-                  class="vip-note-header"
-                >
 
-                  <h3
-                    class="vip-note-title"
-                  >
-                    ${
-                      escapeVIPHTML(
-                        item.title ||
-                        "Important Note"
-                      )
-                    }
+          const body =
+            escapeVIPHTML(
+              item.note
+            );
+
+
+          const date =
+            formatVIPDate(
+              item.updatedAt ||
+              item.createdAt
+            );
+
+
+          const pinText =
+            item.pinned
+              ? "📌 Pinned"
+              : "📌 Pin";
+
+
+          return `
+
+            <article
+              class="vip-note-card ${
+                item.pinned
+                  ? "is-pinned"
+                  : ""
+              }"
+              data-vip-id="${escapeVIPHTML(item.id)}"
+            >
+
+              <div class="vip-note-top">
+
+                <div class="vip-note-title-wrap">
+
+                  <h3 class="vip-note-title">
+                    ${title}
                   </h3>
 
-                  ${
-                    item.pinned
-                      ? `
-                        <div
-                          class="vip-note-pin"
-                        >
-                          📌
-                        </div>
-                      `
-                      : ""
-                  }
+                  <div class="vip-note-meta">
 
-                </div>
+                    <span class="vip-category">
+                      ${getCategoryIcon(item.category)}
+                      ${category}
+                    </span>
 
-
-                <div
-                  class="vip-badges"
-                >
-
-                  <span
-                    class="vip-badge gold"
-                  >
-                    👑 VIP
-                  </span>
-
-                  <span
-                    class="vip-badge"
-                  >
                     ${
-                      escapeVIPHTML(
-                        item.category ||
-                        "Other"
-                      )
+                      date
+                        ? `
+                          <span class="vip-date">
+                            ${escapeVIPHTML(date)}
+                          </span>
+                        `
+                        : ""
                     }
-                  </span>
 
-                  ${
-                    item.pinned
-                      ? `
-                        <span
-                          class="vip-badge gold"
-                        >
-                          📌 Pinned
-                        </span>
-                      `
-                      : ""
-                  }
+                  </div>
 
                 </div>
 
 
-                <div
-                  class="vip-note-body"
-                >
-                  ${
-                    escapeVIPHTML(
-                      item.note
-                    )
-                  }
-                </div>
+                ${
+                  item.pinned
+                    ? `
+                      <div
+                        class="vip-pin-badge"
+                        title="Pinned"
+                      >
+                        📌
+                      </div>
+                    `
+                    : ""
+                }
+
+              </div>
 
 
-                <div
-                  class="vip-note-date"
-                >
-                  Last updated:
-                  ${
-                    formatVIPDate(
-                      item.updatedAt ||
-                      item.createdAt
-                    )
-                  }
-                </div>
+              <div class="vip-note-body">
+                ${body}
+              </div>
 
 
-                <div
-                  class="vip-actions"
-                >
+              <div class="vip-note-actions">
 
-                  <button
-                    type="button"
-                    class="vip-action pin"
-                    onclick="
-                      window.toggleVIPPin(
-                        '${safeId}'
-                      )
-                    "
-                  >
+                <button
+                  type="button"
+                  class="
+                    vip-action-btn
                     ${
                       item.pinned
-                        ? "📌 Unpin"
-                        : "📌 Pin"
+                        ? "vip-pin-active"
+                        : ""
                     }
-                  </button>
+                  "
+                  data-action="pin"
+                  data-id="${escapeVIPHTML(item.id)}"
+                >
+                  ${pinText}
+                </button>
 
 
-                  <button
-                    type="button"
-                    class="vip-action"
-                    onclick="
-                      window.editVIPNote(
-                        '${safeId}'
-                      )
-                    "
-                  >
-                    ✏️ Edit
-                  </button>
+                <button
+                  type="button"
+                  class="vip-action-btn"
+                  data-action="edit"
+                  data-id="${escapeVIPHTML(item.id)}"
+                >
+                  ✏️ Edit
+                </button>
 
 
-                  <button
-                    type="button"
-                    class="
-                      vip-action
-                      delete
-                    "
-                    onclick="
-                      window.deleteVIPNote(
-                        '${safeId}'
-                      )
-                    "
-                  >
-                    🗑 Delete
-                  </button>
+                <button
+                  type="button"
+                  class="
+                    vip-action-btn
+                    vip-delete
+                  "
+                  data-action="delete"
+                  data-id="${escapeVIPHTML(item.id)}"
+                >
+                  🗑 Delete
+                </button>
 
-                </div>
+              </div>
 
-              </article>
+            </article>
 
-            `;
+          `;
 
-          }
-        )
-        .join("");
+        }
+      ).join("");
 
+
+    bindVIPNoteActions();
+  }
+
+
+  /* =======================================================
+     EVENT DELEGATION
+  ======================================================= */
+
+  function bindVIPNoteActions() {
+
+    const list =
+      document.getElementById(
+        "vipNotesList"
+      );
+
+    if (!list) {
+      return;
+    }
+
+
+    list.onclick =
+      function (event) {
+
+        const button =
+          event.target.closest(
+            "button[data-action]"
+          );
+
+
+        if (!button) {
+          return;
+        }
+
+
+        const action =
+          button.dataset.action;
+
+
+        const id =
+          button.dataset.id;
+
+
+        if (!id) {
+          return;
+        }
+
+
+        if (action === "pin") {
+
+          toggleVIPPin(id);
+
+        } else if (action === "edit") {
+
+          editVIPNote(id);
+
+        } else if (action === "delete") {
+
+          deleteVIPNote(id);
+
+        }
+
+      };
   }
 
 
@@ -2543,61 +2158,46 @@
      TOAST
   ======================================================= */
 
-  function showVIPToast(
-    message
-  ) {
+  let vipToastTimer = null;
 
-    let toast =
+
+  function createVIPToast() {
+
+    if (
+      document.getElementById(
+        "vipToast"
+      )
+    ) {
+      return;
+    }
+
+
+    const toast =
+      document.createElement("div");
+
+    toast.id =
+      "vipToast";
+
+
+    document.body.appendChild(
+      toast
+    );
+  }
+
+
+  function showVIPToast(message) {
+
+    createVIPToast();
+
+
+    const toast =
       document.getElementById(
         "vipToast"
       );
 
 
     if (!toast) {
-
-      toast =
-        document.createElement(
-          "div"
-        );
-
-      toast.id =
-        "vipToast";
-
-      toast.style.cssText = `
-
-        position:fixed;
-        left:50%;
-        bottom:
-          calc(
-            22px +
-            env(safe-area-inset-bottom)
-          );
-        transform:
-          translateX(-50%)
-          translateY(12px);
-        z-index:100000;
-        max-width:calc(100% - 36px);
-        padding:11px 16px;
-        border-radius:999px;
-        background:#262032;
-        color:#ffffff;
-        font-size:12px;
-        font-weight:800;
-        box-shadow:
-          0 12px 35px
-          rgba(0,0,0,.22);
-        opacity:0;
-        pointer-events:none;
-        transition:
-          opacity .2s ease,
-          transform .2s ease;
-
-      `;
-
-      document.body.appendChild(
-        toast
-      );
-
+      return;
     }
 
 
@@ -2605,32 +2205,27 @@
       message;
 
 
-    toast.style.opacity =
-      "1";
-
-    toast.style.transform =
-      "translateX(-50%) translateY(0)";
-
-
-    clearTimeout(
-      toast._timer
+    toast.classList.add(
+      "vip-toast-show"
     );
 
 
-    toast._timer =
+    clearTimeout(
+      vipToastTimer
+    );
+
+
+    vipToastTimer =
       setTimeout(
-        () => {
+        function () {
 
-          toast.style.opacity =
-            "0";
-
-          toast.style.transform =
-            "translateX(-50%) translateY(12px)";
+          toast.classList.remove(
+            "vip-toast-show"
+          );
 
         },
-        1800
+        2200
       );
-
   }
 
 
@@ -2641,35 +2236,53 @@
   window.openImportantVIP =
     openImportantVIP;
 
+
   window.editVIPNote =
     editVIPNote;
 
+
   window.deleteVIPNote =
     deleteVIPNote;
+
 
   window.toggleVIPPin =
     toggleVIPPin;
 
 
   /* =======================================================
-     INIT
+     INITIALIZE
   ======================================================= */
 
   function initImportantVIP() {
 
-    importantVIPNotes =
+    try {
+
+      injectVIPStyles();
+
       loadVIPNotes();
 
-    injectVIPStyles();
+      createVIPSection();
 
-    createVIPSection();
+      createVIPModal();
 
-    createVIPModal();
+      createVIPToast();
 
-    renderVIPNotes();
+      renderVIPNotes();
 
+    } catch (error) {
+
+      console.error(
+        "IMPORTANT VIP initialization error:",
+        error
+      );
+
+    }
   }
 
+
+  /* =======================================================
+     DOM READY
+  ======================================================= */
 
   if (
     document.readyState ===
