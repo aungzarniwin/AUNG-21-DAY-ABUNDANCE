@@ -1,35 +1,16 @@
-/* =========================================================
-   21-DAY ABUNDANCE V2.2
-   PROFESSIONAL JOURNEY APP
-   + IMPORTANT VIP PREMIUM NOTES
-   ---------------------------------------------------------
-   21 Days
-   Morning / Night
-   17 Affirmations
-   Intention
-   Action
-   Gratitude
-   Reflection
-   Journal
-   Streak
-   Certificate
-   IMPORTANT VIP
-   LocalStorage
-========================================================= */
-
 (function () {
   "use strict";
 
-  /* =======================================================
-     CONFIG
-  ======================================================= */
+  /* =========================================================
+     21-DAY ABUNDANCE
+     COMPLETE APP.JS
+     ========================================================= */
 
   const TOTAL_DAYS = 21;
   const TOTAL_AFFIRMATIONS = 17;
 
   const STORAGE_KEY = "aung21_abundance_v2";
   const OLD_COMPLETED_KEY = "completed";
-
   const VIP_STORAGE_KEY = "aung21_important_vip_v1";
 
   const SESSION_TYPES = ["morning", "night"];
@@ -52,55 +33,88 @@
   };
 
   let importantVIPNotes = [];
+
   let vipEditingId = null;
+
   let previousBodyOverflow = "";
 
   let appInitialized = false;
   let vipInitialized = false;
 
-  /* =======================================================
-     17 AFFIRMATIONS
-  ======================================================= */
+  /* =========================================================
+     AFFIRMATIONS
+     ========================================================= */
 
   const affirmations = [
     "I am worthy of abundance, success, peace and happiness",
-
     "Money flows to me through valuable work, smart decisions and positive action",
-
     "I trust myself to create a better future",
-
     "I am becoming more confident every day",
-
     "I deserve to live a financially free and meaningful life",
-
     "I attract opportunities that help me grow",
-
     "I take consistent action toward my goals",
-
     "I am capable of learning, improving and succeeding",
-
     "I release fear and choose courage",
-
     "I manage money wisely and create increasing value",
-
     "I am grateful for everything I already have",
-
     "I welcome new ideas, opportunities and possibilities",
-
     "I believe that my actions today can change my future",
-
     "I choose progress over perfection",
-
     "I am building a life that reflects my true goals",
-
     "I am open to receiving abundance in many forms",
-
     "I am responsible for creating the future I want"
   ];
 
-  /* =======================================================
-     DEFAULT JOURNAL
-  ======================================================= */
+  /* =========================================================
+     BASIC HELPERS
+     ========================================================= */
+
+  function $(id) {
+    return document.getElementById(id);
+  }
+
+  function qs(selector) {
+    return document.querySelector(selector);
+  }
+
+  function qsa(selector) {
+    return Array.from(document.querySelectorAll(selector));
+  }
+
+  function safeText(value) {
+    return value == null ? "" : String(value);
+  }
+
+  function todayKey() {
+    const d = new Date();
+
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+
+    return `${y}-${m}-${day}`;
+  }
+
+  function nowISO() {
+    return new Date().toISOString();
+  }
+
+  function clamp(number, min, max) {
+    return Math.min(Math.max(number, min), max);
+  }
+
+  function escapeHTML(value) {
+    return safeText(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  /* =========================================================
+     JOURNAL
+     ========================================================= */
 
   function createEmptyJournal() {
     return {
@@ -110,263 +124,304 @@
       gratitude2: "",
       gratitude3: "",
       reflection: "",
-      savedAt: null
+      journal: ""
     };
   }
 
-  /* =======================================================
+  /* =========================================================
      DEFAULT DATA
-  ======================================================= */
+     ========================================================= */
 
   function createDefaultData() {
-    const completed = {};
+    const days = {};
 
-    for (let day = 1; day <= TOTAL_DAYS; day++) {
-      completed[day] = {
-        morning: false,
-        night: false
+    for (let i = 1; i <= TOTAL_DAYS; i++) {
+      days[i] = {
+        morning: {
+          completed: false,
+          completedAt: null
+        },
+
+        night: {
+          completed: false,
+          completedAt: null
+        },
+
+        journal: createEmptyJournal()
       };
-    }
-
-    const journal = {};
-
-    for (let day = 1; day <= TOTAL_DAYS; day++) {
-      journal[day] = createEmptyJournal();
     }
 
     return {
-      version: 2.2,
-      currentDay: 1,
-      completed: completed,
-      journal: journal,
-      startedAt: new Date().toISOString(),
-      completedAt: null
+      version: 2,
+
+      createdAt: nowISO(),
+
+      lastActiveDate: todayKey(),
+
+      activeDay: 1,
+
+      days: days
     };
   }
 
-  /* =======================================================
-     NORMALIZE JOURNEY DATA
-  ======================================================= */
+  /* =========================================================
+     DATA NORMALIZATION
+     ========================================================= */
 
   function normalizeData(data) {
-    const defaults = createDefaultData();
+    const fresh = createDefaultData();
 
     if (!data || typeof data !== "object") {
-      return defaults;
+      return fresh;
     }
 
-    const normalized = {
-      version: 2.2,
-      currentDay: Number(data.currentDay) || 1,
-      completed: {},
-      journal: {},
-      startedAt: data.startedAt || defaults.startedAt,
-      completedAt: data.completedAt || null
-    };
-
-    if (
-      normalized.currentDay < 1 ||
-      normalized.currentDay > TOTAL_DAYS
-    ) {
-      normalized.currentDay = 1;
+    if (typeof data.activeDay === "number") {
+      fresh.activeDay = clamp(
+        Math.floor(data.activeDay),
+        1,
+        TOTAL_DAYS
+      );
     }
 
-    for (let day = 1; day <= TOTAL_DAYS; day++) {
-      const oldCompleted =
-        data.completed &&
-        data.completed[day]
-          ? data.completed[day]
-          : {};
-
-      normalized.completed[day] = {
-        morning: Boolean(oldCompleted.morning),
-        night: Boolean(oldCompleted.night)
-      };
-
-      const oldJournal =
-        data.journal &&
-        data.journal[day]
-          ? data.journal[day]
-          : {};
-
-      normalized.journal[day] = {
-        intention: String(oldJournal.intention || ""),
-        action: String(oldJournal.action || ""),
-        gratitude1: String(oldJournal.gratitude1 || ""),
-        gratitude2: String(oldJournal.gratitude2 || ""),
-        gratitude3: String(oldJournal.gratitude3 || ""),
-        reflection: String(oldJournal.reflection || ""),
-        savedAt: oldJournal.savedAt || null
-      };
+    if (data.createdAt) {
+      fresh.createdAt = data.createdAt;
     }
 
-    return normalized;
+    if (data.lastActiveDate) {
+      fresh.lastActiveDate = data.lastActiveDate;
+    }
+
+    if (data.days && typeof data.days === "object") {
+      for (let i = 1; i <= TOTAL_DAYS; i++) {
+        const source = data.days[i] || data.days[String(i)] || {};
+
+        fresh.days[i].morning.completed =
+          !!source.morning?.completed;
+
+        fresh.days[i].morning.completedAt =
+          source.morning?.completedAt || null;
+
+        fresh.days[i].night.completed =
+          !!source.night?.completed;
+
+        fresh.days[i].night.completedAt =
+          source.night?.completedAt || null;
+
+        const journal = source.journal || {};
+
+        fresh.days[i].journal = {
+          intention: safeText(journal.intention),
+          action: safeText(journal.action),
+          gratitude1: safeText(journal.gratitude1),
+          gratitude2: safeText(journal.gratitude2),
+          gratitude3: safeText(journal.gratitude3),
+          reflection: safeText(journal.reflection),
+          journal: safeText(journal.journal)
+        };
+      }
+    }
+
+    return fresh;
   }
 
-  /* =======================================================
-     LOAD JOURNEY DATA
-  ======================================================= */
+  /* =========================================================
+     LOAD / SAVE
+     ========================================================= */
 
   function loadData() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
 
       if (saved) {
-        return normalizeData(JSON.parse(saved));
+        appData = normalizeData(JSON.parse(saved));
+        return;
       }
+    } catch (error) {
+      console.warn("21-Day Abundance data load error:", error);
+    }
 
+    appData = createDefaultData();
+
+    /*
+      Old compatibility
+    */
+    try {
       const oldCompleted = localStorage.getItem(OLD_COMPLETED_KEY);
 
       if (oldCompleted) {
-        const fresh = createDefaultData();
-
         try {
-          const old = JSON.parse(oldCompleted);
+          const parsed = JSON.parse(oldCompleted);
 
-          if (old && typeof old === "object") {
-            Object.keys(old).forEach(function (key) {
-              const day = Number(key);
+          if (Array.isArray(parsed)) {
+            parsed.forEach(function (dayNumber) {
+              const day = Number(dayNumber);
 
               if (day >= 1 && day <= TOTAL_DAYS) {
-                if (typeof old[key] === "boolean") {
-                  fresh.completed[day].morning = old[key];
-                }
+                appData.days[day].morning.completed = true;
               }
             });
           }
-        } catch (error) {
-          console.warn("Old completion migration failed", error);
+        } catch (e) {
+          console.warn("Old completion data could not be imported");
         }
-
-        saveData(fresh);
-
-        return fresh;
       }
+    } catch (e) {}
 
-      const fresh = createDefaultData();
-
-      saveData(fresh);
-
-      return fresh;
-    } catch (error) {
-      console.error("Unable to load app data", error);
-
-      return createDefaultData();
-    }
+    saveData();
   }
 
-  /* =======================================================
-     SAVE JOURNEY DATA
-  ======================================================= */
+  function saveData() {
+    if (!appData) return;
 
-  function saveData(data) {
     try {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify(data)
+        JSON.stringify(appData)
       );
-
-      return true;
     } catch (error) {
-      console.error("Unable to save app data", error);
-
-      return false;
+      console.warn("21-Day Abundance save error:", error);
     }
   }
 
-  /* =======================================================
+  /* =========================================================
      DATE
-  ======================================================= */
+     ========================================================= */
 
   function updateDate() {
-    const el = document.getElementById("todayDate");
-
-    if (!el) return;
-
-    const now = new Date();
-
-    el.textContent = now.toLocaleDateString(
-      undefined,
-      {
+    const dateText =
+      new Date().toLocaleDateString(undefined, {
         weekday: "long",
         year: "numeric",
         month: "long",
         day: "numeric"
+      });
+
+    const candidates = [
+      "todayDate",
+      "currentDate",
+      "dateText"
+    ];
+
+    candidates.forEach(function (id) {
+      const el = $(id);
+
+      if (el) {
+        el.textContent = dateText;
       }
-    );
+    });
   }
 
-  /* =======================================================
-     SESSION HELPERS
-  ======================================================= */
+  /* =========================================================
+     SESSION STATUS
+     ========================================================= */
 
   function isSessionCompleted(day, type) {
-    return Boolean(
-      appData &&
-      appData.completed &&
-      appData.completed[day] &&
-      appData.completed[day][type]
-    );
+    if (!appData?.days?.[day]) {
+      return false;
+    }
+
+    if (!SESSION_TYPES.includes(type)) {
+      return false;
+    }
+
+    return !!appData.days[day][type].completed;
   }
 
   function completeSession(day, type) {
-    if (!appData.completed[day]) {
-      appData.completed[day] = {
-        morning: false,
-        night: false
-      };
+    day = Number(day) || currentSession.day;
+    type = type || currentSession.type;
+
+    if (!appData.days[day]) {
+      return;
     }
 
-    appData.completed[day][type] = true;
+    if (!SESSION_TYPES.includes(type)) {
+      return;
+    }
 
-    saveData(appData);
+    appData.days[day][type].completed = true;
+    appData.days[day][type].completedAt = nowISO();
+
+    appData.activeDay = clamp(
+      day,
+      1,
+      TOTAL_DAYS
+    );
+
+    appData.lastActiveDate = todayKey();
+
+    saveData();
 
     updateAllUI();
   }
 
+  /* =========================================================
+     DAY STATUS
+     ========================================================= */
+
   function isDayCompleted(day) {
+    if (!appData?.days?.[day]) {
+      return false;
+    }
+
     return (
-      isSessionCompleted(day, "morning") &&
-      isSessionCompleted(day, "night")
+      appData.days[day].morning.completed &&
+      appData.days[day].night.completed
     );
   }
 
   function getCompletedDays() {
+    if (!appData) {
+      return 0;
+    }
+
     let count = 0;
 
-    for (let day = 1; day <= TOTAL_DAYS; day++) {
-      if (isDayCompleted(day)) {
+    for (let i = 1; i <= TOTAL_DAYS; i++) {
+      if (isDayCompleted(i)) {
         count++;
       }
     }
 
     return count;
+  }
+
+  function countCompletedDays() {
+    return getCompletedDays();
   }
 
   function getTotalCompletedSessions() {
-    let count = 0;
+    if (!appData) {
+      return 0;
+    }
 
-    for (let day = 1; day <= TOTAL_DAYS; day++) {
-      if (isSessionCompleted(day, "morning")) {
-        count++;
+    let total = 0;
+
+    for (let i = 1; i <= TOTAL_DAYS; i++) {
+      if (appData.days[i].morning.completed) {
+        total++;
       }
 
-      if (isSessionCompleted(day, "night")) {
-        count++;
+      if (appData.days[i].night.completed) {
+        total++;
       }
     }
 
-    return count;
+    return total;
   }
 
-  /* =======================================================
+  /* =========================================================
      STREAK
-  ======================================================= */
+     ========================================================= */
 
   function calculateStreak() {
+    if (!appData) {
+      return 0;
+    }
+
     let streak = 0;
 
-    for (let day = 1; day <= TOTAL_DAYS; day++) {
+    for (let day = TOTAL_DAYS; day >= 1; day--) {
       if (isDayCompleted(day)) {
         streak++;
       } else {
@@ -377,272 +432,263 @@
     return streak;
   }
 
-  /* =======================================================
-     CURRENT DAY
-  ======================================================= */
+  /* =========================================================
+     ACTIVE DAY
+     ========================================================= */
 
   function getActiveDay() {
-    const completedDays = getCompletedDays();
+    if (!appData) {
+      return 1;
+    }
 
-    if (completedDays >= TOTAL_DAYS) {
+    const completed = getCompletedDays();
+
+    if (completed >= TOTAL_DAYS) {
       return TOTAL_DAYS;
     }
 
-    return Math.min(
-      Math.max(
-        Number(appData.currentDay) || 1,
-        1
-      ),
+    for (let i = 1; i <= TOTAL_DAYS; i++) {
+      if (!isDayCompleted(i)) {
+        return i;
+      }
+    }
+
+    return clamp(
+      Number(appData.activeDay) || 1,
+      1,
       TOTAL_DAYS
     );
   }
 
-  /* =======================================================
-     PROGRESS
-  ======================================================= */
+  /* =========================================================
+     OVERALL PROGRESS
+     ========================================================= */
 
   function getOverallProgress() {
-    const total = TOTAL_DAYS * 2;
-    const completed = getTotalCompletedSessions();
-
-    if (!total) return 0;
+    const completedSessions =
+      getTotalCompletedSessions();
 
     return Math.round(
-      (completed / total) * 100
+      (completedSessions /
+        (TOTAL_DAYS * 2)) *
+        100
     );
   }
 
-  /* =======================================================
+  function calculateOverallProgress() {
+    return getOverallProgress();
+  }
+
+  /* =========================================================
      HOME UI
-  ======================================================= */
+     ========================================================= */
+
+  function setTextById(id, value) {
+    const el = $(id);
+
+    if (el) {
+      el.textContent = safeText(value);
+    }
+  }
+
+  function setWidthById(id, percent) {
+    const el = $(id);
+
+    if (el) {
+      el.style.width = clamp(
+        Number(percent) || 0,
+        0,
+        100
+      ) + "%";
+    }
+  }
 
   function updateHome() {
-    const completedDays = getCompletedDays();
-    const totalCompleted = getTotalCompletedSessions();
-    const progress = getOverallProgress();
+    if (!appData) {
+      return;
+    }
+
     const activeDay = getActiveDay();
+
+    const overall = getOverallProgress();
+
+    const completedDays = getCompletedDays();
+
+    const totalSessions =
+      getTotalCompletedSessions();
+
     const streak = calculateStreak();
 
-    const overallProgress =
-      document.getElementById("overallProgress");
+    setTextById(
+      "dayTitle",
+      `Day ${activeDay}`
+    );
 
-    const overallText =
-      document.getElementById("overallText");
+    setTextById(
+      "overallProgress",
+      overall + "%"
+    );
 
-    const completedDaysText =
-      document.getElementById("completedDaysText");
+    setTextById(
+      "overallText",
+      overall + "%"
+    );
 
-    const totalCompletedText =
-      document.getElementById("totalCompletedText");
+    setTextById(
+      "completedDaysText",
+      completedDays
+    );
 
-    const todayPercent =
-      document.getElementById("todayPercent");
+    setTextById(
+      "totalCompletedText",
+      totalSessions
+    );
 
-    const streakNumber =
-      document.getElementById("streakNumber");
+    setTextById(
+      "todayPercent",
+      isDayCompleted(activeDay)
+        ? "100%"
+        : (
+            (
+              Number(
+                appData.days[activeDay].morning.completed
+              ) +
+              Number(
+                appData.days[activeDay].night.completed
+              )
+            ) * 50
+          ) + "%"
+    );
 
-    const morningStatus =
-      document.getElementById("morningStatus");
+    setTextById(
+      "streakNumber",
+      streak
+    );
 
-    const nightStatus =
-      document.getElementById("nightStatus");
+    setWidthById(
+      "overallProgressBar",
+      overall
+    );
 
-    const morningProgress =
-      document.getElementById("morningProgress");
+    setWidthById(
+      "overallProgressFill",
+      overall
+    );
 
-    const nightProgress =
-      document.getElementById("nightProgress");
+    updateSessionButtons();
 
-    if (overallProgress) {
-      overallProgress.style.width =
-        progress + "%";
+    renderDays();
+  }
+
+  /* =========================================================
+     SESSION BUTTONS
+     ========================================================= */
+
+  function updateSessionButtons() {
+    if (!appData) {
+      return;
     }
 
-    if (overallText) {
-      overallText.textContent =
-        progress + "%";
-    }
-
-    if (completedDaysText) {
-      completedDaysText.textContent =
-        completedDays + " / " + TOTAL_DAYS;
-    }
-
-    if (totalCompletedText) {
-      totalCompletedText.textContent =
-        totalCompleted + " / " +
-        (TOTAL_DAYS * 2);
-    }
-
-    if (todayPercent) {
-      const morning =
-        isSessionCompleted(
-          activeDay,
-          "morning"
-        )
-          ? 50
-          : 0;
-
-      const night =
-        isSessionCompleted(
-          activeDay,
-          "night"
-        )
-          ? 50
-          : 0;
-
-      todayPercent.textContent =
-        (morning + night) + "%";
-    }
-
-    if (streakNumber) {
-      streakNumber.textContent =
-        streak;
-    }
+    const day = getActiveDay();
 
     const morningDone =
-      isSessionCompleted(
-        activeDay,
-        "morning"
-      );
+      isSessionCompleted(day, "morning");
 
     const nightDone =
-      isSessionCompleted(
-        activeDay,
-        "night"
-      );
+      isSessionCompleted(day, "night");
 
-    if (morningStatus) {
-      morningStatus.textContent =
-        morningDone
-          ? "Completed"
-          : "Not completed";
-    }
-
-    if (nightStatus) {
-      nightStatus.textContent =
-        nightDone
-          ? "Completed"
-          : "Not completed";
-    }
-
-    if (morningProgress) {
-      morningProgress.style.width =
-        morningDone ? "100%" : "0%";
-    }
-
-    if (nightProgress) {
-      nightProgress.style.width =
-        nightDone ? "100%" : "0%";
-    }
-
-    const dayTitle =
-      document.getElementById("dayTitle");
-
-    if (dayTitle) {
-      dayTitle.textContent =
-        "Day " + activeDay;
-    }
-
-    updateSessionButtons(
-      activeDay
+    setTextById(
+      "morningStatus",
+      morningDone ? "Completed" : "Not Started"
     );
-  }
 
-  /* =======================================================
-     SESSION BUTTONS
-  ======================================================= */
+    setTextById(
+      "nightStatus",
+      nightDone ? "Completed" : "Not Started"
+    );
 
-  function updateSessionButtons(day) {
-    const morningButton =
-      document.getElementById("morningButton");
+    setTextById(
+      "morningProgress",
+      morningDone ? "100%" : "0%"
+    );
 
-    const nightButton =
-      document.getElementById("nightButton");
+    setTextById(
+      "nightProgress",
+      nightDone ? "100%" : "0%"
+    );
+
+    const morningButton = $("morningButton");
 
     if (morningButton) {
-      const done =
-        isSessionCompleted(
-          day,
-          "morning"
-        );
-
-      morningButton.classList.toggle(
-        "completed",
-        done
-      );
-
-      morningButton.setAttribute(
-        "aria-label",
-        done
-          ? "Morning completed"
-          : "Start Morning"
-      );
+      if (morningDone) {
+        morningButton.classList.add("completed");
+      } else {
+        morningButton.classList.remove("completed");
+      }
     }
 
+    const nightButton = $("nightButton");
+
     if (nightButton) {
-      const done =
-        isSessionCompleted(
-          day,
-          "night"
-        );
-
-      nightButton.classList.toggle(
-        "completed",
-        done
-      );
-
-      nightButton.setAttribute(
-        "aria-label",
-        done
-          ? "Night completed"
-          : "Start Night"
-      );
+      if (nightDone) {
+        nightButton.classList.add("completed");
+      } else {
+        nightButton.classList.remove("completed");
+      }
     }
   }
 
-  /* =======================================================
-     DAYS GRID
-  ======================================================= */
+  /* =========================================================
+     DAY LIST
+     ========================================================= */
 
   function renderDays() {
-    const grid =
-      document.getElementById("daysGrid");
+    const containers = [
+      $("daysGrid"),
+      $("daysContainer"),
+      $("dayGrid"),
+      $("daysList")
+    ];
 
-    if (!grid) return;
+    const container =
+      containers.find(Boolean);
 
-    grid.innerHTML = "";
+    if (!container) {
+      return;
+    }
 
-    for (
-      let day = 1;
-      day <= TOTAL_DAYS;
-      day++
-    ) {
+    container.innerHTML = "";
+
+    for (let day = 1; day <= TOTAL_DAYS; day++) {
+      const completed =
+        isDayCompleted(day);
+
+      const morning =
+        isSessionCompleted(day, "morning");
+
+      const night =
+        isSessionCompleted(day, "night");
+
+      const active =
+        day === getActiveDay();
+
       const button =
         document.createElement("button");
 
       button.type = "button";
 
       button.className =
-        "day-card";
-
-      if (day === getActiveDay()) {
-        button.classList.add("active");
-      }
-
-      if (isDayCompleted(day)) {
-        button.classList.add("completed");
-      }
+        "day-item" +
+        (completed ? " completed" : "") +
+        (active ? " active" : "");
 
       button.innerHTML = `
-        <span class="day-number">
-          ${day}
-        </span>
-        <span class="day-label">
-          ${
-            isDayCompleted(day)
-              ? "Completed"
-              : "Day " + day
+        <span class="day-number">${day}</span>
+        <span class="day-label">Day ${day}</span>
+        <span class="day-status">
+          ${completed
+            ? "✓"
+            : `${morning ? "☀" : "○"} ${night ? "☾" : "○"}`
           }
         </span>
       `;
@@ -654,450 +700,379 @@
         }
       );
 
-      grid.appendChild(button);
+      container.appendChild(button);
     }
   }
 
-  /* =======================================================
+  /* =========================================================
      SELECT DAY
-  ======================================================= */
+     ========================================================= */
 
   function selectDay(day) {
     day = Number(day);
 
-    if (
-      !Number.isFinite(day) ||
-      day < 1 ||
-      day > TOTAL_DAYS
-    ) {
+    if (!Number.isFinite(day)) {
       return;
     }
 
-    appData.currentDay = day;
+    if (day < 1 || day > TOTAL_DAYS) {
+      return;
+    }
 
-    saveData(appData);
+    appData.activeDay = day;
 
-    loadJournal(day);
+    saveData();
 
-    renderDays();
+    updateAllUI();
 
-    updateHome();
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth"
-    });
+    scrollToTop();
   }
 
-  /* =======================================================
+  /* =========================================================
      JOURNAL
-  ======================================================= */
+     ========================================================= */
 
   function ensureJournal(day) {
-    if (!appData.journal[day]) {
-      appData.journal[day] =
+    if (!appData.days[day]) {
+      return;
+    }
+
+    if (
+      !appData.days[day].journal ||
+      typeof appData.days[day].journal !== "object"
+    ) {
+      appData.days[day].journal =
         createEmptyJournal();
     }
 
-    return appData.journal[day];
+    const current =
+      appData.days[day].journal;
+
+    appData.days[day].journal = {
+      intention: safeText(current.intention),
+      action: safeText(current.action),
+      gratitude1: safeText(current.gratitude1),
+      gratitude2: safeText(current.gratitude2),
+      gratitude3: safeText(current.gratitude3),
+      reflection: safeText(current.reflection),
+      journal: safeText(current.journal)
+    };
+  }
+
+  function findJournalField(name) {
+    const possibleIds = {
+      intention: [
+        "intention",
+        "intentionInput",
+        "dailyIntention"
+      ],
+
+      action: [
+        "action",
+        "actionInput",
+        "dailyAction"
+      ],
+
+      gratitude1: [
+        "gratitude1",
+        "gratitudeOne"
+      ],
+
+      gratitude2: [
+        "gratitude2",
+        "gratitudeTwo"
+      ],
+
+      gratitude3: [
+        "gratitude3",
+        "gratitudeThree"
+      ],
+
+      reflection: [
+        "reflection",
+        "reflectionInput"
+      ],
+
+      journal: [
+        "journal",
+        "journalInput",
+        "journalText"
+      ]
+    };
+
+    const ids =
+      possibleIds[name] || [];
+
+    for (const id of ids) {
+      const el = $(id);
+
+      if (el) {
+        return el;
+      }
+    }
+
+    return null;
   }
 
   function loadJournal(day) {
+    day = Number(day) || getActiveDay();
+
+    ensureJournal(day);
+
     const journal =
-      ensureJournal(day);
+      appData.days[day].journal;
 
-    const intentionInput =
-      document.getElementById(
-        "intentionInput"
-      );
+    Object.keys(journal).forEach(
+      function (field) {
+        const input =
+          findJournalField(field);
 
-    const actionInput =
-      document.getElementById(
-        "actionInput"
-      );
-
-    const gratitude1 =
-      document.getElementById(
-        "gratitude1"
-      );
-
-    const gratitude2 =
-      document.getElementById(
-        "gratitude2"
-      );
-
-    const gratitude3 =
-      document.getElementById(
-        "gratitude3"
-      );
-
-    const reflectionInput =
-      document.getElementById(
-        "reflectionInput"
-      );
-
-    if (intentionInput) {
-      intentionInput.value =
-        journal.intention;
-    }
-
-    if (actionInput) {
-      actionInput.value =
-        journal.action;
-    }
-
-    if (gratitude1) {
-      gratitude1.value =
-        journal.gratitude1;
-    }
-
-    if (gratitude2) {
-      gratitude2.value =
-        journal.gratitude2;
-    }
-
-    if (gratitude3) {
-      gratitude3.value =
-        journal.gratitude3;
-    }
-
-    if (reflectionInput) {
-      reflectionInput.value =
-        journal.reflection;
-    }
-
-    const status =
-      document.getElementById(
-        "journalSaveStatus"
-      );
-
-    if (status) {
-      status.textContent =
-        journal.savedAt
-          ? "Saved"
-          : "";
-    }
+        if (input) {
+          input.value =
+            journal[field] || "";
+        }
+      }
+    );
   }
 
   function saveJournal() {
+    if (!appData) {
+      return;
+    }
+
     const day = getActiveDay();
 
+    ensureJournal(day);
+
     const journal =
-      ensureJournal(day);
+      appData.days[day].journal;
 
-    const intentionInput =
-      document.getElementById(
-        "intentionInput"
-      );
+    Object.keys(journal).forEach(
+      function (field) {
+        const input =
+          findJournalField(field);
 
-    const actionInput =
-      document.getElementById(
-        "actionInput"
-      );
+        if (input) {
+          journal[field] =
+            input.value || "";
+        }
+      }
+    );
 
-    const gratitude1 =
-      document.getElementById(
-        "gratitude1"
-      );
+    saveData();
 
-    const gratitude2 =
-      document.getElementById(
-        "gratitude2"
-      );
-
-    const gratitude3 =
-      document.getElementById(
-        "gratitude3"
-      );
-
-    const reflectionInput =
-      document.getElementById(
-        "reflectionInput"
-      );
-
-    if (intentionInput) {
-      journal.intention =
-        intentionInput.value;
-    }
-
-    if (actionInput) {
-      journal.action =
-        actionInput.value;
-    }
-
-    if (gratitude1) {
-      journal.gratitude1 =
-        gratitude1.value;
-    }
-
-    if (gratitude2) {
-      journal.gratitude2 =
-        gratitude2.value;
-    }
-
-    if (gratitude3) {
-      journal.gratitude3 =
-        gratitude3.value;
-    }
-
-    if (reflectionInput) {
-      journal.reflection =
-        reflectionInput.value;
-    }
-
-    journal.savedAt =
-      new Date().toISOString();
-
-    saveData(appData);
-
-    const status =
-      document.getElementById(
-        "journalSaveStatus"
-      );
-
-    if (status) {
-      status.textContent =
-        "Saved ✓";
-
-      clearTimeout(
-        status._saveTimer
-      );
-
-      status._saveTimer =
-        setTimeout(
-          function () {
-            status.textContent =
-              "Saved";
-          },
-          1800
-        );
-    }
+    showSmallMessage(
+      "Journal saved"
+    );
   }
 
-  /* =======================================================
-     JOURNAL AUTO SAVE
-  ======================================================= */
-
   function setupJournalAutoSave() {
-    const ids = [
-      "intentionInput",
-      "actionInput",
+    const fields = [
+      "intention",
+      "action",
       "gratitude1",
       "gratitude2",
       "gratitude3",
-      "reflectionInput"
+      "reflection",
+      "journal"
     ];
 
-    ids.forEach(function (id) {
-      const element =
-        document.getElementById(id);
+    fields.forEach(
+      function (field) {
+        const input =
+          findJournalField(field);
 
-      if (!element) return;
-
-      element.addEventListener(
-        "input",
-        function () {
-          saveJournal();
+        if (!input) {
+          return;
         }
-      );
-    });
+
+        input.addEventListener(
+          "input",
+          function () {
+            const day =
+              getActiveDay();
+
+            ensureJournal(day);
+
+            appData.days[day].journal[field] =
+              input.value || "";
+
+            saveData();
+          }
+        );
+      }
+    );
   }
 
-  /* =======================================================
-     START SESSION
-  ======================================================= */
+  /* =========================================================
+     SESSION START
+     ========================================================= */
 
   function startSession(type) {
-    const day = getActiveDay();
-
-    if (
-      !SESSION_TYPES.includes(type)
-    ) {
+    if (!SESSION_TYPES.includes(type)) {
       type = "morning";
     }
+
+    const day =
+      getActiveDay();
 
     currentSession = {
       day: day,
       type: type,
-      affirmationIndex:
-        type === "morning"
-          ? 0
-          : Math.min(
-              TOTAL_AFFIRMATIONS - 1,
-              8
-            )
+      affirmationIndex: 0
     };
 
-    const sessionScreen =
-      document.getElementById(
-        "sessionScreen"
-      );
+    appData.activeDay = day;
+    appData.lastActiveDate = todayKey();
 
-    const homeScreen =
-      document.getElementById(
-        "homeScreen"
-      );
+    saveData();
 
-    if (homeScreen) {
-      homeScreen.style.display =
-        "none";
-    }
-
-    if (sessionScreen) {
-      sessionScreen.style.display =
-        "block";
-    }
+    showScreen("sessionScreen");
 
     renderSession();
 
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth"
-    });
+    scrollToTop();
   }
 
-  /* =======================================================
+  /* =========================================================
      SESSION RENDER
-  ======================================================= */
+     ========================================================= */
 
   function renderSession() {
+    const day =
+      currentSession.day;
+
+    const type =
+      currentSession.type;
+
     const index =
-      Math.max(
+      clamp(
+        currentSession.affirmationIndex,
         0,
-        Math.min(
-          TOTAL_AFFIRMATIONS - 1,
-          currentSession.affirmationIndex
-        )
+        affirmations.length - 1
       );
 
-    const affirmationText =
-      document.getElementById(
-        "affirmationText"
-      );
+    const affirmation =
+      affirmations[index];
 
-    const affirmationNumber =
-      document.getElementById(
-        "affirmationNumber"
-      );
+    setTextById(
+      "sessionDay",
+      `Day ${day}`
+    );
 
-    const sessionDay =
-      document.getElementById(
-        "sessionDay"
-      );
+    setTextById(
+      "sessionTitle",
+      type === "morning"
+        ? "Morning Abundance"
+        : "Night Abundance"
+    );
 
-    const sessionType =
-      document.getElementById(
-        "sessionType"
-      );
+    setTextById(
+      "sessionType",
+      type === "morning"
+        ? "Morning Practice"
+        : "Night Practice"
+    );
 
-    const sessionCounter =
-      document.getElementById(
-        "sessionCounter"
-      );
+    setTextById(
+      "affirmation",
+      affirmation
+    );
 
-    const sessionProgress =
-      document.getElementById(
-        "sessionProgress"
-      );
+    setTextById(
+      "affirmationText",
+      affirmation
+    );
 
-    const sessionProgressText =
-      document.getElementById(
-        "sessionProgressText"
-      );
+    setTextById(
+      "affirmationNumber",
+      `${index + 1}/${TOTAL_AFFIRMATIONS}`
+    );
 
-    if (affirmationText) {
-      affirmationText.textContent =
-        affirmations[index];
-    }
+    setTextById(
+      "currentAffirmation",
+      `${index + 1}`
+    );
 
-    if (affirmationNumber) {
-      affirmationNumber.textContent =
-        index + 1;
-    }
+    setTextById(
+      "totalAffirmations",
+      TOTAL_AFFIRMATIONS
+    );
 
-    if (sessionDay) {
-      sessionDay.textContent =
-        "Day " +
-        currentSession.day;
-    }
+    setWidthById(
+      "affirmationProgress",
+      ((index + 1) /
+        TOTAL_AFFIRMATIONS) *
+        100
+    );
 
-    if (sessionType) {
-      sessionType.textContent =
-        currentSession.type ===
-        "morning"
-          ? "Morning"
-          : "Night";
-    }
+    const previousButtons = [
+      $("previousAffirmationButton"),
+      $("previousButton")
+    ];
 
-    if (sessionCounter) {
-      sessionCounter.textContent =
-        (index + 1) +
-        " / " +
-        TOTAL_AFFIRMATIONS;
-    }
+    previousButtons.forEach(
+      function (button) {
+        if (button) {
+          button.disabled =
+            index <= 0;
+        }
+      }
+    );
 
-    const percent =
-      Math.round(
-        ((index + 1) /
-          TOTAL_AFFIRMATIONS) *
-          100
-      );
+    const nextButtons = [
+      $("nextAffirmationButton"),
+      $("nextButton")
+    ];
 
-    if (sessionProgress) {
-      sessionProgress.style.width =
-        percent + "%";
-    }
+    nextButtons.forEach(
+      function (button) {
+        if (button) {
+          button.disabled =
+            index >= affirmations.length - 1;
+        }
+      }
+    );
 
-    if (sessionProgressText) {
-      sessionProgressText.textContent =
-        percent + "%";
-    }
+    const finishButtons = [
+      $("finishButton"),
+      $("finishSessionButton")
+    ];
 
-    const previousButton =
-      document.getElementById(
-        "previousButton"
-      );
-
-    const nextButton =
-      document.getElementById(
-        "nextButton"
-      );
-
-    if (previousButton) {
-      previousButton.disabled =
-        index === 0;
-    }
-
-    if (nextButton) {
-      nextButton.disabled =
-        index >=
-        TOTAL_AFFIRMATIONS - 1;
-    }
+    finishButtons.forEach(
+      function (button) {
+        if (button) {
+          button.style.display =
+            index >= affirmations.length - 1
+              ? ""
+              : "none";
+        }
+      }
+    );
   }
 
-  /* =======================================================
-     NEXT AFFIRMATION
-  ======================================================= */
+  /* =========================================================
+     AFFIRMATION NAVIGATION
+     ========================================================= */
 
   function nextAffirmation() {
     if (
       currentSession.affirmationIndex <
-      TOTAL_AFFIRMATIONS - 1
+      affirmations.length - 1
     ) {
       currentSession.affirmationIndex++;
 
       renderSession();
-    }
-  }
 
-  /* =======================================================
-     PREVIOUS AFFIRMATION
-  ======================================================= */
+      return;
+    }
+
+    finishSession();
+  }
 
   function previousAffirmation() {
     if (
-      currentSession.affirmationIndex >
-      0
+      currentSession.affirmationIndex > 0
     ) {
       currentSession.affirmationIndex--;
 
@@ -1105,9 +1080,9 @@
     }
   }
 
-  /* =======================================================
-     COMPLETE SESSION
-  ======================================================= */
+  /* =========================================================
+     FINISH SESSION
+     ========================================================= */
 
   function finishSession() {
     const day =
@@ -1121,187 +1096,122 @@
       type
     );
 
-    showCompleteScreen(
-      day,
-      type
-    );
+    showCompleteScreen();
   }
 
-  /* =======================================================
+  /* =========================================================
      COMPLETE SCREEN
-  ======================================================= */
+     ========================================================= */
 
-  function showCompleteScreen(
-    day,
-    type
-  ) {
-    const sessionScreen =
-      document.getElementById(
-        "sessionScreen"
-      );
+  function showCompleteScreen() {
+    showScreen("completeScreen");
 
-    const completeScreen =
-      document.getElementById(
-        "completeScreen"
-      );
+    const day =
+      currentSession.day;
 
-    if (sessionScreen) {
-      sessionScreen.style.display =
-        "none";
-    }
+    const type =
+      currentSession.type;
 
-    if (completeScreen) {
-      completeScreen.style.display =
-        "block";
-    }
+    setTextById(
+      "completedDay",
+      `Day ${day}`
+    );
 
-    const completeTitle =
-      document.getElementById(
-        "completeTitle"
-      );
+    setTextById(
+      "completedSession",
+      type === "morning"
+        ? "Morning Practice Complete"
+        : "Night Practice Complete"
+    );
 
-    const completeMessage =
-      document.getElementById(
-        "completeMessage"
-      );
+    setTextById(
+      "completeTitle",
+      "Well Done!"
+    );
 
-    const completeDayNumber =
-      document.getElementById(
-        "completeDayNumber"
-      );
-
-    const completeStreak =
-      document.getElementById(
-        "completeStreak"
-      );
-
-    if (completeTitle) {
-      completeTitle.textContent =
-        type === "morning"
-          ? "Morning Complete"
-          : "Night Complete";
-    }
-
-    if (completeMessage) {
-      completeMessage.textContent =
-        "You completed Day " +
-        day +
-        " " +
-        type +
-        " session";
-    }
-
-    if (completeDayNumber) {
-      completeDayNumber.textContent =
-        day;
-    }
-
-    if (completeStreak) {
-      completeStreak.textContent =
-        calculateStreak();
-    }
-  }
-
-  /* =======================================================
-     BACK HOME
-  ======================================================= */
-
-  function goHome() {
-    const screens = [
-      "sessionScreen",
-      "completeScreen",
-      "certificateScreen"
-    ];
-
-    screens.forEach(function (id) {
-      const element =
-        document.getElementById(id);
-
-      if (element) {
-        element.style.display =
-          "none";
-      }
-    });
-
-    const home =
-      document.getElementById(
-        "homeScreen"
-      );
-
-    if (home) {
-      home.style.display =
-        "block";
-    }
+    setTextById(
+      "completeMessage",
+      "You completed this abundance practice"
+    );
 
     updateAllUI();
 
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth"
-    });
+    scrollToTop();
   }
 
-  /* =======================================================
+  /* =========================================================
+     GO HOME
+     ========================================================= */
+
+  function goHome() {
+    showScreen("homeScreen");
+
+    updateAllUI();
+
+    loadJournal(
+      getActiveDay()
+    );
+
+    scrollToTop();
+  }
+
+  /* =========================================================
      CERTIFICATE
-  ======================================================= */
+     ========================================================= */
+
+  function updateCertificateAvailability() {
+    const complete =
+      getCompletedDays() >= TOTAL_DAYS;
+
+    const buttons = [
+      $("certificateButton"),
+      $("viewCertificateButton")
+    ];
+
+    buttons.forEach(
+      function (button) {
+        if (!button) return;
+
+        button.disabled =
+          !complete;
+
+        button.classList.toggle(
+          "locked",
+          !complete
+        );
+      }
+    );
+  }
 
   function showCertificate() {
-    const completedDays =
-      getCompletedDays();
-
-    if (completedDays <
-        TOTAL_DAYS) {
-      showVIPToast(
-        "Complete all 21 days first"
+    if (getCompletedDays() < TOTAL_DAYS) {
+      showSmallMessage(
+        "Complete all 21 days to unlock your certificate"
       );
 
       return;
     }
 
-    const home =
-      document.getElementById(
-        "homeScreen"
-      );
+    showScreen(
+      "certificateScreen"
+    );
 
-    const certificate =
-      document.getElementById(
-        "certificateScreen"
-      );
+    setTextById(
+      "certificateName",
+      "21-Day Abundance"
+    );
 
-    if (home) {
-      home.style.display =
-        "none";
-    }
+    setTextById(
+      "certificateDate",
+      new Date().toLocaleDateString()
+    );
 
-    if (certificate) {
-      certificate.style.display =
-        "block";
-    }
-
-    const certificateDate =
-      document.getElementById(
-        "certificateDate"
-      );
-
-    if (certificateDate) {
-      certificateDate.textContent =
-        new Date().toLocaleDateString(
-          undefined,
-          {
-            year: "numeric",
-            month: "long",
-            day: "numeric"
-          }
-        );
-    }
+    scrollToTop();
   }
 
-  /* =======================================================
-     RESET JOURNEY
-     -------------------------------------------------------
-     IMPORTANT:
-     VIP NOTES ARE NOT DELETED
-  ======================================================= */
+  /* =========================================================
+     RESET
+     ========================================================= */
 
   function resetAll() {
     const confirmed =
@@ -1309,64 +1219,265 @@
         "Reset your 21-Day Abundance journey?"
       );
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     appData =
       createDefaultData();
 
-    saveData(appData);
+    /*
+      Important:
+      VIP notes are intentionally NOT deleted
+    */
 
-    loadJournal(
-      appData.currentDay
-    );
+    saveData();
+
+    currentSession = {
+      day: 1,
+      type: "morning",
+      affirmationIndex: 0
+    };
 
     goHome();
 
-    renderDays();
-
-    updateHome();
-
     showVIPToast(
-      "Journey reset. Important VIP notes are safe"
+      "Journey reset successfully"
     );
   }
 
-  /* =======================================================
-     UPDATE ALL UI
-  ======================================================= */
+  /* =========================================================
+     SCREEN SYSTEM
+     ========================================================= */
 
-  function updateAllUI() {
-    updateDate();
-    updateHome();
-    renderDays();
+  function showScreen(screenId) {
+    const screenIds = [
+      "homeScreen",
+      "sessionScreen",
+      "completeScreen",
+      "certificateScreen"
+    ];
 
-    const activeDay =
-      getActiveDay();
+    screenIds.forEach(
+      function (id) {
+        const screen = $(id);
 
-    loadJournal(activeDay);
+        if (!screen) {
+          return;
+        }
 
-    updateCertificateAvailability();
+        if (id === screenId) {
+          screen.classList.add("active");
+
+          screen.style.display = "";
+        } else {
+          screen.classList.remove("active");
+
+          /*
+            Do not force display:none if existing CSS
+            controls screen behavior.
+          */
+        }
+      }
+    );
+
+    const selected =
+      $(screenId);
+
+    if (selected) {
+      selected.scrollTop = 0;
+    }
   }
 
-  function updateCertificateAvailability() {
-    const completed =
-      getCompletedDays();
+  function scrollToTop() {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+  }
 
-    const button =
-      document.querySelector(
-        "[data-certificate]"
+  /* =========================================================
+     SMALL MESSAGE
+     ========================================================= */
+
+  function showSmallMessage(message) {
+    let toast =
+      $("abundanceToast");
+
+    if (!toast) {
+      toast =
+        document.createElement("div");
+
+      toast.id =
+        "abundanceToast";
+
+      toast.style.position =
+        "fixed";
+
+      toast.style.left =
+        "50%";
+
+      toast.style.bottom =
+        "90px";
+
+      toast.style.transform =
+        "translateX(-50%)";
+
+      toast.style.zIndex =
+        "99999";
+
+      toast.style.padding =
+        "12px 18px";
+
+      toast.style.borderRadius =
+        "999px";
+
+      toast.style.background =
+        "rgba(20,20,30,.95)";
+
+      toast.style.color =
+        "#fff";
+
+      toast.style.fontSize =
+        "14px";
+
+      toast.style.boxShadow =
+        "0 10px 30px rgba(0,0,0,.25)";
+
+      document.body.appendChild(
+        toast
+      );
+    }
+
+    toast.textContent =
+      safeText(message);
+
+    toast.style.opacity = "1";
+
+    clearTimeout(
+      toast._timer
+    );
+
+    toast._timer =
+      setTimeout(
+        function () {
+          toast.style.opacity =
+            "0";
+        },
+        2200
+      );
+  }
+
+  /* =========================================================
+     KEYBOARD
+     ========================================================= */
+
+  function setupKeyboard() {
+    document.addEventListener(
+      "keydown",
+      function (event) {
+        const active =
+          $("sessionScreen");
+
+        if (
+          !active ||
+          !active.classList.contains("active")
+        ) {
+          return;
+        }
+
+        if (event.key === "ArrowRight") {
+          nextAffirmation();
+        }
+
+        if (event.key === "ArrowLeft") {
+          previousAffirmation();
+        }
+
+        if (event.key === "Escape") {
+          goHome();
+        }
+      }
+    );
+  }
+
+  /* =========================================================
+     BUTTON BINDINGS
+     ========================================================= */
+
+  function bindButtons() {
+    const morning =
+      $("morningButton");
+
+    if (morning) {
+      morning.addEventListener(
+        "click",
+        function () {
+          openSession("morning");
+        }
+      );
+    }
+
+    const night =
+      $("nightButton");
+
+    if (night) {
+      night.addEventListener(
+        "click",
+        function () {
+          openSession("night");
+        }
+      );
+    }
+
+    const next =
+      $("nextAffirmationButton");
+
+    if (next) {
+      next.addEventListener(
+        "click",
+        nextAffirmation
+      );
+    }
+
+    const previous =
+      $("previousAffirmationButton");
+
+    if (previous) {
+      previous.addEventListener(
+        "click",
+        previousAffirmation
+      );
+    }
+
+    const finish =
+      $("finishButton");
+
+    if (finish) {
+      finish.addEventListener(
+        "click",
+        finishSession
+      );
+    }
+
+    const homeButtons =
+      qsa(
+        '[data-action="home"]'
       );
 
-    if (!button) return;
-
-    button.disabled =
-      completed < TOTAL_DAYS;
+    homeButtons.forEach(
+      function (button) {
+        button.addEventListener(
+          "click",
+          goHome
+        );
+      }
+    );
   }
 
-  /* =======================================================
-     IMPORTANT VIP
-     PREMIUM MOBILE NOTE SYSTEM
-  ======================================================= */
+  /* =========================================================
+     VIP NOTES
+     ========================================================= */
 
   function createVIPId() {
     return (
@@ -1375,72 +1486,47 @@
       "_" +
       Math.random()
         .toString(36)
-        .slice(2, 9)
+        .slice(2, 8)
     );
   }
 
-  /* =======================================================
-     ESCAPE HTML
-  ======================================================= */
-
   function escapeVIPHTML(value) {
-    return String(value ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
+    return escapeHTML(value);
   }
 
-  /* =======================================================
-     FORMAT VIP DATE
-  ======================================================= */
-
-  function formatVIPDate(value) {
-    const date =
-      new Date(value);
-
-    if (
-      Number.isNaN(
-        date.getTime()
-      )
-    ) {
+  function formatVIPDate(dateValue) {
+    if (!dateValue) {
       return "";
     }
 
-    return date.toLocaleString(
+    const date =
+      new Date(dateValue);
+
+    if (Number.isNaN(
+      date.getTime()
+    )) {
+      return "";
+    }
+
+    return date.toLocaleDateString(
       undefined,
       {
         year: "numeric",
         month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit"
+        day: "numeric"
       }
     );
   }
 
-  /* =======================================================
-     VALID CATEGORY
-  ======================================================= */
+  function normalizeVIPCategory(category) {
+    if (
+      VIP_CATEGORIES.includes(category)
+    ) {
+      return category;
+    }
 
-  function normalizeVIPCategory(
-    category
-  ) {
-    const value =
-      String(category || "")
-        .trim();
-
-    return VIP_CATEGORIES.includes(
-      value
-    )
-      ? value
-      : "Other";
+    return "Other";
   }
-
-  /* =======================================================
-     LOAD VIP NOTES
-  ======================================================= */
 
   function loadVIPNotes() {
     try {
@@ -1451,6 +1537,7 @@
 
       if (!raw) {
         importantVIPNotes = [];
+
         return;
       }
 
@@ -1459,89 +1546,62 @@
 
       if (!Array.isArray(parsed)) {
         importantVIPNotes = [];
+
         return;
       }
 
       importantVIPNotes =
         parsed
-          .map(function (item) {
-            const now =
-              new Date().toISOString();
+          .filter(
+            note =>
+              note &&
+              typeof note === "object"
+          )
+          .map(
+            function (note) {
+              return {
+                id:
+                  note.id ||
+                  createVIPId(),
 
-            const createdAt =
-              item.createdAt &&
-              !Number.isNaN(
-                new Date(
-                  item.createdAt
-                ).getTime()
-              )
-                ? item.createdAt
-                : now;
+                title:
+                  safeText(
+                    note.title
+                  ),
 
-            const updatedAt =
-              item.updatedAt &&
-              !Number.isNaN(
-                new Date(
-                  item.updatedAt
-                ).getTime()
-              )
-                ? item.updatedAt
-                : createdAt;
+                content:
+                  safeText(
+                    note.content
+                  ),
 
-            return {
-              id:
-                String(
-                  item.id ||
-                  createVIPId()
-                ),
+                category:
+                  normalizeVIPCategory(
+                    note.category
+                  ),
 
-              title:
-                String(
-                  item.title ||
-                  "Important Note"
-                ),
+                pinned:
+                  !!note.pinned,
 
-              category:
-                normalizeVIPCategory(
-                  item.category
-                ),
+                createdAt:
+                  note.createdAt ||
+                  nowISO(),
 
-              note:
-                String(
-                  item.note || ""
-                ),
-
-              pinned:
-                Boolean(
-                  item.pinned
-                ),
-
-              createdAt:
-                createdAt,
-
-              updatedAt:
-                updatedAt
-            };
-          })
-          .filter(function (item) {
-            return (
-              item.note.trim() ||
-              item.title.trim()
-            );
-          });
+                updatedAt:
+                  note.updatedAt ||
+                  note.createdAt ||
+                  nowISO()
+              };
+            }
+          );
     } catch (error) {
-      console.error(
-        "Unable to load Important VIP notes",
+      console.warn(
+        "VIP notes load error:",
         error
       );
 
       importantVIPNotes = [];
     }
   }
-
-  /* =======================================================
-     SAVE VIP NOTES
-  ======================================================= */
 
   function saveVIPNotes() {
     try {
@@ -1551,31 +1611,21 @@
           importantVIPNotes
         )
       );
-
-      return true;
     } catch (error) {
-      console.error(
-        "Unable to save Important VIP notes",
+      console.warn(
+        "VIP notes save error:",
         error
       );
-
-      showVIPToast(
-        "Unable to save note"
-      );
-
-      return false;
     }
   }
 
-  /* =======================================================
-     VIP CSS
-  ======================================================= */
+  /* =========================================================
+     VIP STYLES
+     ========================================================= */
 
   function injectVIPStyles() {
     if (
-      document.getElementById(
-        "importantVIPStyles"
-      )
+      $("importantVIPStyles")
     ) {
       return;
     }
@@ -1587,523 +1637,314 @@
       "importantVIPStyles";
 
     style.textContent = `
-      #importantVIPSection {
-        margin: 22px 0 30px;
-        position: relative;
-      }
-
-      .vip-premium-card {
-        position: relative;
-        overflow: hidden;
-        border-radius: 24px;
-        padding: 18px;
+      .a21-vip-section{
+        margin:20px 0;
+        padding:18px;
+        border-radius:24px;
         background:
           linear-gradient(
             145deg,
-            rgba(43, 24, 71, .98),
-            rgba(19, 15, 31, .98)
+            rgba(255,255,255,.98),
+            rgba(250,247,255,.96)
           );
-        border: 1px solid rgba(232, 190, 84, .28);
+        border:1px solid rgba(130,90,180,.15);
         box-shadow:
-          0 18px 50px rgba(0,0,0,.22),
-          inset 0 1px 0 rgba(255,255,255,.06);
+          0 12px 35px rgba(40,20,70,.08);
       }
 
-      .vip-premium-card::before {
-        content: "";
-        position: absolute;
-        width: 180px;
-        height: 180px;
-        border-radius: 50%;
-        right: -90px;
-        top: -90px;
-        background:
-          radial-gradient(
-            circle,
-            rgba(240,197,77,.22),
-            transparent 68%
-          );
-        pointer-events: none;
+      .a21-vip-header{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:12px;
+        margin-bottom:16px;
       }
 
-      .vip-header {
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 15px;
+      .a21-vip-title{
+        display:flex;
+        align-items:center;
+        gap:10px;
       }
 
-      .vip-title-wrap {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        min-width: 0;
+      .a21-vip-icon{
+        width:42px;
+        height:42px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        border-radius:14px;
+        background:linear-gradient(135deg,#8b5cf6,#ec4899);
+        color:#fff;
+        font-size:20px;
       }
 
-      .vip-crown {
-        width: 46px;
-        height: 46px;
-        flex: 0 0 46px;
-        border-radius: 15px;
-        display: grid;
-        place-items: center;
-        font-size: 23px;
-        background:
-          linear-gradient(
-            135deg,
-            #f6d365,
-            #c89116
-          );
-        box-shadow:
-          0 8px 22px rgba(212,163,42,.24);
+      .a21-vip-heading{
+        font-size:17px;
+        font-weight:800;
       }
 
-      .vip-heading {
-        min-width: 0;
+      .a21-vip-sub{
+        font-size:12px;
+        opacity:.65;
+        margin-top:3px;
       }
 
-      .vip-heading h3 {
-        margin: 0;
-        color: #f7df8b;
-        font-size: 16px;
-        font-weight: 800;
-        letter-spacing: .5px;
+      .a21-vip-add{
+        border:0;
+        min-width:42px;
+        height:42px;
+        padding:0 14px;
+        border-radius:14px;
+        cursor:pointer;
+        color:#fff;
+        background:#111827;
+        font-weight:700;
       }
 
-      .vip-heading p {
-        margin: 4px 0 0;
-        color: rgba(255,255,255,.65);
-        font-size: 12px;
+      .a21-vip-tools{
+        display:flex;
+        gap:8px;
+        margin-bottom:14px;
       }
 
-      .vip-add-btn {
-        border: 0;
-        min-width: 44px;
-        height: 44px;
-        padding: 0 14px;
-        border-radius: 14px;
-        cursor: pointer;
-        color: #24170a;
-        font-size: 20px;
-        font-weight: 900;
-        background:
-          linear-gradient(
-            135deg,
-            #ffe69a,
-            #d9a92e
-          );
-        box-shadow:
-          0 8px 20px rgba(219,170,43,.2);
+      .a21-vip-search{
+        flex:1;
+        min-width:0;
+        border:1px solid #e5e7eb;
+        background:#fff;
+        border-radius:14px;
+        padding:12px 14px;
+        outline:none;
+        font-size:14px;
       }
 
-      .vip-add-btn:active {
-        transform: scale(.97);
+      .a21-vip-filter{
+        border:1px solid #e5e7eb;
+        background:#fff;
+        border-radius:14px;
+        padding:0 10px;
+        outline:none;
+        font-size:13px;
       }
 
-      .vip-search-wrap {
-        position: relative;
-        margin-bottom: 15px;
+      .a21-vip-empty{
+        padding:24px 12px;
+        text-align:center;
+        border-radius:18px;
+        background:#f8f7fb;
+        color:#777;
+        font-size:13px;
       }
 
-      .vip-search {
-        width: 100%;
-        box-sizing: border-box;
-        height: 46px;
-        padding: 0 16px 0 42px;
-        border-radius: 15px;
-        border: 1px solid rgba(255,255,255,.09);
-        outline: none;
-        color: #fff;
-        background: rgba(255,255,255,.06);
-        font-size: 14px;
+      .a21-vip-card{
+        position:relative;
+        padding:16px;
+        margin-top:10px;
+        border-radius:18px;
+        background:#fff;
+        border:1px solid #eee;
+        box-shadow:0 5px 18px rgba(0,0,0,.04);
       }
 
-      .vip-search::placeholder {
-        color: rgba(255,255,255,.42);
+      .a21-vip-card.pinned{
+        border-color:rgba(245,158,11,.45);
       }
 
-      .vip-search:focus {
-        border-color: rgba(240,197,77,.5);
-        box-shadow:
-          0 0 0 3px rgba(240,197,77,.08);
+      .a21-vip-card-top{
+        display:flex;
+        align-items:flex-start;
+        justify-content:space-between;
+        gap:10px;
       }
 
-      .vip-search-icon {
-        position: absolute;
-        left: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        opacity: .6;
-        pointer-events: none;
+      .a21-vip-card-title{
+        font-weight:800;
+        line-height:1.35;
+        word-break:break-word;
       }
 
-      .vip-count {
-        color: rgba(255,255,255,.55);
-        font-size: 11px;
-        margin-bottom: 11px;
+      .a21-vip-category{
+        display:inline-flex;
+        margin-top:7px;
+        padding:5px 9px;
+        border-radius:999px;
+        background:#f3e8ff;
+        color:#7c3aed;
+        font-size:11px;
+        font-weight:700;
       }
 
-      .vip-list {
-        display: grid;
-        gap: 11px;
+      .a21-vip-content{
+        margin-top:12px;
+        color:#4b5563;
+        line-height:1.6;
+        font-size:13px;
+        white-space:pre-wrap;
+        word-break:break-word;
       }
 
-      .vip-note-card {
-        position: relative;
-        overflow: hidden;
-        padding: 15px;
-        border-radius: 18px;
-        background:
-          linear-gradient(
-            145deg,
-            rgba(255,255,255,.075),
-            rgba(255,255,255,.035)
-          );
-        border: 1px solid rgba(255,255,255,.075);
+      .a21-vip-date{
+        margin-top:10px;
+        font-size:10px;
+        color:#9ca3af;
       }
 
-      .vip-note-card.is-pinned {
-        border-color:
-          rgba(240,197,77,.34);
-        box-shadow:
-          inset 3px 0 0 #e4b93d;
+      .a21-vip-actions{
+        display:flex;
+        gap:7px;
+        margin-top:12px;
       }
 
-      .vip-note-top {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 10px;
+      .a21-vip-action{
+        flex:1;
+        border:1px solid #e5e7eb;
+        background:#fff;
+        border-radius:11px;
+        padding:9px 7px;
+        cursor:pointer;
+        font-size:11px;
       }
 
-      .vip-note-main {
-        min-width: 0;
+      .a21-vip-action.delete{
+        color:#dc2626;
       }
 
-      .vip-note-title {
-        color: #fff;
-        font-size: 15px;
-        font-weight: 800;
-        line-height: 1.35;
-        word-break: break-word;
+      .a21-vip-action.pin{
+        color:#b45309;
       }
 
-      .vip-note-category {
-        display: inline-flex;
-        margin-top: 7px;
-        padding: 4px 8px;
-        border-radius: 999px;
-        color: #f5dc83;
-        background: rgba(240,197,77,.09);
-        border: 1px solid rgba(240,197,77,.16);
-        font-size: 10px;
-        font-weight: 700;
+      .a21-vip-modal-backdrop{
+        position:fixed;
+        inset:0;
+        z-index:100000;
+        display:flex;
+        align-items:flex-end;
+        justify-content:center;
+        padding:12px;
+        background:rgba(15,23,42,.58);
+        backdrop-filter:blur(5px);
       }
 
-      .vip-note-body {
-        margin-top: 11px;
-        color: rgba(255,255,255,.78);
-        font-size: 13px;
-        line-height: 1.65;
-        white-space: pre-wrap;
-        word-break: break-word;
+      .a21-vip-modal{
+        width:min(620px,100%);
+        max-height:92vh;
+        overflow:auto;
+        background:#fff;
+        border-radius:26px;
+        padding:20px;
+        box-shadow:0 30px 80px rgba(0,0,0,.3);
       }
 
-      .vip-note-date {
-        margin-top: 11px;
-        color: rgba(255,255,255,.36);
-        font-size: 10px;
+      .a21-vip-modal-head{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        margin-bottom:16px;
       }
 
-      .vip-note-actions {
-        display: flex;
-        gap: 6px;
-        flex: 0 0 auto;
+      .a21-vip-modal-title{
+        font-size:18px;
+        font-weight:800;
       }
 
-      .vip-icon-btn {
-        width: 34px;
-        height: 34px;
-        border: 0;
-        border-radius: 11px;
-        cursor: pointer;
-        color: rgba(255,255,255,.78);
-        background: rgba(255,255,255,.07);
+      .a21-vip-close{
+        width:38px;
+        height:38px;
+        border:0;
+        border-radius:12px;
+        background:#f3f4f6;
+        cursor:pointer;
+        font-size:20px;
       }
 
-      .vip-icon-btn:hover {
-        background: rgba(255,255,255,.12);
+      .a21-vip-field{
+        margin-top:13px;
       }
 
-      .vip-icon-btn.pinned {
-        color: #f5d267;
-        background: rgba(240,197,77,.11);
+      .a21-vip-label{
+        display:block;
+        margin-bottom:7px;
+        font-size:12px;
+        font-weight:700;
+        color:#374151;
       }
 
-      .vip-empty {
-        padding: 25px 14px;
-        text-align: center;
-        border-radius: 18px;
-        border: 1px dashed rgba(255,255,255,.12);
-        color: rgba(255,255,255,.48);
+      .a21-vip-input,
+      .a21-vip-textarea,
+      .a21-vip-select{
+        width:100%;
+        box-sizing:border-box;
+        border:1px solid #e5e7eb;
+        border-radius:14px;
+        padding:12px 13px;
+        outline:none;
+        font-size:14px;
+        background:#fff;
       }
 
-      .vip-empty-icon {
-        font-size: 32px;
-        margin-bottom: 8px;
+      .a21-vip-textarea{
+        min-height:150px;
+        resize:vertical;
+        line-height:1.6;
       }
 
-      .vip-empty-title {
-        color: rgba(255,255,255,.8);
-        font-size: 14px;
-        font-weight: 700;
+      .a21-vip-save{
+        width:100%;
+        margin-top:16px;
+        border:0;
+        border-radius:15px;
+        padding:13px;
+        background:linear-gradient(135deg,#7c3aed,#db2777);
+        color:#fff;
+        font-weight:800;
+        cursor:pointer;
       }
 
-      .vip-empty-text {
-        margin-top: 5px;
-        font-size: 11px;
+      .a21-vip-cancel{
+        width:100%;
+        margin-top:8px;
+        border:1px solid #e5e7eb;
+        border-radius:15px;
+        padding:12px;
+        background:#fff;
+        cursor:pointer;
       }
 
-      .vip-quick-action {
-        position: relative;
-        width: 100%;
-        margin-top: 13px;
-        padding: 14px 15px;
-        border: 1px solid rgba(240,197,77,.2);
-        border-radius: 17px;
-        cursor: pointer;
-        text-align: left;
-        color: #fff;
-        background:
-          linear-gradient(
-            135deg,
-            rgba(240,197,77,.12),
-            rgba(137,82,203,.12)
-          );
+      .a21-vip-toast{
+        position:fixed;
+        left:50%;
+        bottom:86px;
+        transform:translateX(-50%);
+        z-index:100001;
+        padding:11px 16px;
+        border-radius:999px;
+        background:#111827;
+        color:#fff;
+        font-size:12px;
+        box-shadow:0 12px 35px rgba(0,0,0,.22);
       }
 
-      .vip-quick-action strong {
-        display: block;
-        color: #f6dc84;
-        font-size: 13px;
-      }
-
-      .vip-quick-action span {
-        display: block;
-        margin-top: 3px;
-        color: rgba(255,255,255,.48);
-        font-size: 10px;
-      }
-
-      #importantVIPModal {
-        position: fixed;
-        inset: 0;
-        z-index: 99999;
-        display: none;
-        align-items: flex-end;
-        justify-content: center;
-        background: rgba(0,0,0,.68);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-      }
-
-      .vip-modal-sheet {
-        width: 100%;
-        max-width: 560px;
-        max-height: 88vh;
-        overflow-y: auto;
-        border-radius: 28px 28px 0 0;
-        padding: 20px;
-        box-sizing: border-box;
-        background:
-          linear-gradient(
-            145deg,
-            #21152e,
-            #111018
-          );
-        border-top: 1px solid rgba(240,197,77,.2);
-        box-shadow:
-          0 -20px 60px rgba(0,0,0,.35);
-      }
-
-      .vip-modal-handle {
-        width: 42px;
-        height: 4px;
-        margin: 0 auto 17px;
-        border-radius: 999px;
-        background: rgba(255,255,255,.18);
-      }
-
-      .vip-modal-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        margin-bottom: 18px;
-      }
-
-      .vip-modal-title {
-        color: #f6dc84;
-        font-size: 18px;
-        font-weight: 900;
-      }
-
-      .vip-modal-close {
-        width: 38px;
-        height: 38px;
-        border: 0;
-        border-radius: 12px;
-        cursor: pointer;
-        color: #fff;
-        background: rgba(255,255,255,.07);
-        font-size: 18px;
-      }
-
-      .vip-field {
-        margin-bottom: 14px;
-      }
-
-      .vip-field label {
-        display: block;
-        margin-bottom: 7px;
-        color: rgba(255,255,255,.7);
-        font-size: 11px;
-        font-weight: 700;
-      }
-
-      .vip-field input,
-      .vip-field textarea,
-      .vip-field select {
-        width: 100%;
-        box-sizing: border-box;
-        border: 1px solid rgba(255,255,255,.1);
-        border-radius: 14px;
-        outline: none;
-        color: #fff;
-        background: rgba(255,255,255,.06);
-        font-size: 14px;
-      }
-
-      .vip-field input,
-      .vip-field select {
-        height: 48px;
-        padding: 0 14px;
-      }
-
-      .vip-field textarea {
-        min-height: 150px;
-        padding: 13px 14px;
-        resize: vertical;
-        line-height: 1.6;
-        font-family: inherit;
-      }
-
-      .vip-field select option {
-        color: #111;
-        background: #fff;
-      }
-
-      .vip-field input:focus,
-      .vip-field textarea:focus,
-      .vip-field select:focus {
-        border-color: rgba(240,197,77,.5);
-        box-shadow:
-          0 0 0 3px rgba(240,197,77,.08);
-      }
-
-      .vip-save-main {
-        width: 100%;
-        min-height: 50px;
-        margin-top: 3px;
-        border: 0;
-        border-radius: 15px;
-        cursor: pointer;
-        color: #24170a;
-        font-weight: 900;
-        font-size: 14px;
-        background:
-          linear-gradient(
-            135deg,
-            #ffe69a,
-            #d5a52c
-          );
-      }
-
-      .vip-save-main:active {
-        transform: scale(.99);
-      }
-
-      .vip-cancel-main {
-        width: 100%;
-        min-height: 46px;
-        margin-top: 8px;
-        border: 1px solid rgba(255,255,255,.08);
-        border-radius: 14px;
-        cursor: pointer;
-        color: rgba(255,255,255,.72);
-        background: rgba(255,255,255,.04);
-      }
-
-      #importantVIPToast {
-        position: fixed;
-        left: 50%;
-        bottom: 24px;
-        z-index: 100001;
-        transform:
-          translate(-50%, 20px);
-        opacity: 0;
-        pointer-events: none;
-        padding: 11px 15px;
-        border-radius: 999px;
-        color: #fff;
-        background: rgba(22,18,28,.96);
-        border: 1px solid rgba(240,197,77,.22);
-        box-shadow:
-          0 12px 35px rgba(0,0,0,.3);
-        font-size: 12px;
-        transition:
-          opacity .2s ease,
-          transform .2s ease;
-        white-space: nowrap;
-      }
-
-      #importantVIPToast.show {
-        opacity: 1;
-        transform:
-          translate(-50%, 0);
-      }
-
-      @media (min-width: 700px) {
-        #importantVIPModal {
-          align-items: center;
-          padding: 20px;
-          box-sizing: border-box;
-        }
-
-        .vip-modal-sheet {
-          border-radius: 26px;
-          border: 1px solid rgba(240,197,77,.18);
-          max-height: 80vh;
+      @media(min-width:700px){
+        .a21-vip-modal-backdrop{
+          align-items:center;
         }
       }
     `;
 
-    document.head.appendChild(style);
+    document.head.appendChild(
+      style
+    );
   }
 
-  /* =======================================================
+  /* =========================================================
      VIP SECTION
-  ======================================================= */
+     ========================================================= */
 
   function createVIPSection() {
     if (
-      document.getElementById(
-        "importantVIPSection"
-      )
+      $("importantVIPSection")
     ) {
-      return;
+      return $("importantVIPSection");
     }
 
     const section =
@@ -2112,337 +1953,225 @@
     section.id =
       "importantVIPSection";
 
+    section.className =
+      "a21-vip-section";
+
     section.innerHTML = `
-      <div class="vip-premium-card">
+      <div class="a21-vip-header">
+        <div class="a21-vip-title">
+          <div class="a21-vip-icon">★</div>
 
-        <div class="vip-header">
-
-          <div class="vip-title-wrap">
-
-            <div class="vip-crown">
-              👑
+          <div>
+            <div class="a21-vip-heading">
+              Important VIP Notes
             </div>
 
-            <div class="vip-heading">
-              <h3>IMPORTANT VIP</h3>
-              <p>Your private important notes</p>
+            <div class="a21-vip-sub">
+              သိမ်းထားချင်တဲ့ အရေးကြီးတဲ့ note တွေကို ဒီမှာထားနိုင်ပါတယ်
             </div>
-
           </div>
-
-          <button
-            type="button"
-            class="vip-add-btn"
-            id="vipAddButton"
-            aria-label="Add Important Note"
-          >
-            +
-          </button>
-
         </div>
 
-        <div class="vip-search-wrap">
-
-          <span class="vip-search-icon">
-            🔎
-          </span>
-
-          <input
-            id="vipSearchInput"
-            class="vip-search"
-            type="search"
-            placeholder="Search important notes..."
-            autocomplete="off"
-          />
-
-        </div>
-
-        <div
-          id="vipCount"
-          class="vip-count"
+        <button
+          type="button"
+          class="a21-vip-add"
+          id="importantVIPAddButton"
         >
-          0 notes
-        </div>
-
-        <div
-          id="vipNotesList"
-          class="vip-list"
-        ></div>
-
+          + Add
+        </button>
       </div>
+
+      <div class="a21-vip-tools">
+        <input
+          id="importantVIPSearch"
+          class="a21-vip-search"
+          type="search"
+          placeholder="Search important notes..."
+        />
+
+        <select
+          id="importantVIPFilter"
+          class="a21-vip-filter"
+        >
+          <option value="All">All</option>
+          ${VIP_CATEGORIES.map(
+            category =>
+              `<option value="${escapeHTML(category)}">${escapeHTML(category)}</option>`
+          ).join("")}
+        </select>
+      </div>
+
+      <div id="importantVIPNotesList"></div>
     `;
 
-    const quickGrid =
-      document.querySelector(
-        ".quick-grid"
-      );
+    /*
+      Prefer dashboard/home area
+    */
 
-    const homeScreen =
-      document.getElementById(
-        "homeScreen"
-      );
+    const possibleParents = [
+      $("homeScreen"),
+      $("dashboardScreen"),
+      $("home"),
+      document.querySelector("main")
+    ];
 
-    if (quickGrid) {
-      quickGrid.insertAdjacentElement(
-        "afterend",
+    const parent =
+      possibleParents.find(Boolean);
+
+    if (parent) {
+      parent.appendChild(section);
+    } else {
+      document.body.appendChild(
         section
       );
-    } else if (homeScreen) {
-      homeScreen.appendChild(section);
-    } else {
-      document.body.appendChild(section);
     }
 
-    createVIPQuickAction();
+    return section;
   }
 
-  /* =======================================================
-     QUICK ACTION
-  ======================================================= */
+  /* =========================================================
+     VIP QUICK ACTION
+     ========================================================= */
 
   function createVIPQuickAction() {
-    if (
-      document.getElementById(
-        "vipQuickAction"
-      )
-    ) {
-      return;
-    }
+    /*
+      Existing HTML may already have a Quick Action.
+      We intentionally do not duplicate it.
+    */
 
-    const button =
-      document.createElement("button");
-
-    button.type = "button";
-
-    button.id =
-      "vipQuickAction";
-
-    button.className =
-      "vip-quick-action";
-
-    button.innerHTML = `
-      <strong>
-        👑 Important VIP Notes
-      </strong>
-      <span>
-        Save important lessons, teacher notes and ideas
-      </span>
-    `;
-
-    button.addEventListener(
-      "click",
-      function () {
-        openImportantVIP();
-      }
-    );
-
-    const quickGrid =
+    const existing =
       document.querySelector(
-        ".quick-grid"
+        '[data-vip-action="important"]'
       );
 
-    if (quickGrid) {
-      quickGrid.appendChild(button);
+    if (existing) {
+      return;
     }
   }
 
-  /* =======================================================
+  /* =========================================================
      VIP MODAL
-  ======================================================= */
+     ========================================================= */
 
   function createVIPModal() {
     if (
-      document.getElementById(
-        "importantVIPModal"
-      )
+      $("importantVIPModal")
     ) {
       return;
     }
 
-    const modal =
+    const backdrop =
       document.createElement("div");
 
-    modal.id =
+    backdrop.id =
       "importantVIPModal";
 
-    modal.innerHTML = `
+    backdrop.className =
+      "a21-vip-modal-backdrop";
+
+    backdrop.style.display =
+      "none";
+
+    backdrop.innerHTML = `
       <div
-        class="vip-modal-sheet"
+        class="a21-vip-modal"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="vipModalTitle"
       >
-
-        <div class="vip-modal-handle"></div>
-
-        <div class="vip-modal-header">
-
+        <div class="a21-vip-modal-head">
           <div
-            id="vipModalTitle"
-            class="vip-modal-title"
+            class="a21-vip-modal-title"
+            id="importantVIPModalTitle"
           >
             Add Important Note
           </div>
 
           <button
             type="button"
-            id="vipModalClose"
-            class="vip-modal-close"
-            aria-label="Close"
+            class="a21-vip-close"
+            id="importantVIPClose"
           >
             ×
           </button>
-
         </div>
 
-        <div class="vip-field">
-
-          <label for="vipTitleInput">
-            Note Title
+        <div class="a21-vip-field">
+          <label
+            class="a21-vip-label"
+            for="importantVIPTitle"
+          >
+            Title
           </label>
 
           <input
-            id="vipTitleInput"
+            id="importantVIPTitle"
+            class="a21-vip-input"
             type="text"
-            maxlength="100"
-            placeholder="Example: Teacher's Important Lesson"
-            autocomplete="off"
+            maxlength="120"
+            placeholder="e.g. Teacher's important lesson"
           />
-
         </div>
 
-        <div class="vip-field">
-
-          <label for="vipCategoryInput">
+        <div class="a21-vip-field">
+          <label
+            class="a21-vip-label"
+            for="importantVIPCategory"
+          >
             Category
           </label>
 
           <select
-            id="vipCategoryInput"
+            id="importantVIPCategory"
+            class="a21-vip-select"
           >
-            ${VIP_CATEGORIES.map(function (category) {
-              return `
-                <option value="${escapeVIPHTML(category)}">
-                  ${escapeVIPHTML(category)}
-                </option>
-              `;
-            }).join("")}
+            ${VIP_CATEGORIES.map(
+              category =>
+                `<option value="${escapeHTML(category)}">${escapeHTML(category)}</option>`
+            ).join("")}
           </select>
-
         </div>
 
-        <div class="vip-field">
-
-          <label for="vipNoteInput">
+        <div class="a21-vip-field">
+          <label
+            class="a21-vip-label"
+            for="importantVIPContent"
+          >
             Important Note
           </label>
 
           <textarea
-            id="vipNoteInput"
-            maxlength="5000"
+            id="importantVIPContent"
+            class="a21-vip-textarea"
             placeholder="Write your important note here..."
           ></textarea>
-
         </div>
 
         <button
           type="button"
-          id="vipSaveButton"
-          class="vip-save-main"
+          class="a21-vip-save"
+          id="importantVIPSave"
         >
           Save Important Note
         </button>
 
         <button
           type="button"
-          id="vipCancelButton"
-          class="vip-cancel-main"
+          class="a21-vip-cancel"
+          id="importantVIPCancel"
         >
           Cancel
         </button>
-
       </div>
     `;
 
-    document.body.appendChild(modal);
-
-    const close =
-      document.getElementById(
-        "vipModalClose"
-      );
-
-    const cancel =
-      document.getElementById(
-        "vipCancelButton"
-      );
-
-    const save =
-      document.getElementById(
-        "vipSaveButton"
-      );
-
-    const add =
-      document.getElementById(
-        "vipAddButton"
-      );
-
-    if (close) {
-      close.addEventListener(
-        "click",
-        closeVIPModal
-      );
-    }
-
-    if (cancel) {
-      cancel.addEventListener(
-        "click",
-        closeVIPModal
-      );
-    }
-
-    if (save) {
-      save.addEventListener(
-        "click",
-        saveVIPNote
-      );
-    }
-
-    if (add) {
-      add.addEventListener(
-        "click",
-        function () {
-          openImportantVIP();
-        }
-      );
-    }
-
-    modal.addEventListener(
-      "click",
-      function (event) {
-        if (
-          event.target === modal
-        ) {
-          closeVIPModal();
-        }
-      }
-    );
-
-    document.addEventListener(
-      "keydown",
-      function (event) {
-        if (
-          event.key === "Escape" &&
-          modal.style.display === "flex"
-        ) {
-          closeVIPModal();
-        }
-      }
+    document.body.appendChild(
+      backdrop
     );
   }
 
-  /* =======================================================
-     OPEN VIP MODAL
-  ======================================================= */
+  /* =========================================================
+     OPEN VIP
+     ========================================================= */
 
   function openImportantVIP() {
     createVIPModal();
@@ -2450,93 +2179,72 @@
     vipEditingId = null;
 
     const modal =
-      document.getElementById(
-        "importantVIPModal"
-      );
+      $("importantVIPModal");
 
     const title =
-      document.getElementById(
-        "vipModalTitle"
-      );
+      $("importantVIPModalTitle");
 
-    const titleInput =
-      document.getElementById(
-        "vipTitleInput"
-      );
+    const input =
+      $("importantVIPTitle");
 
-    const categoryInput =
-      document.getElementById(
-        "vipCategoryInput"
-      );
+    const category =
+      $("importantVIPCategory");
 
-    const noteInput =
-      document.getElementById(
-        "vipNoteInput"
-      );
+    const content =
+      $("importantVIPContent");
 
-    const saveButton =
-      document.getElementById(
-        "vipSaveButton"
-      );
+    if (!modal) {
+      return;
+    }
 
     if (title) {
       title.textContent =
         "Add Important Note";
     }
 
-    if (titleInput) {
-      titleInput.value = "";
+    if (input) {
+      input.value = "";
     }
 
-    if (categoryInput) {
-      categoryInput.value =
+    if (category) {
+      category.value =
         "Teacher";
     }
 
-    if (noteInput) {
-      noteInput.value = "";
+    if (content) {
+      content.value = "";
     }
-
-    if (saveButton) {
-      saveButton.textContent =
-        "Save Important Note";
-    }
-
-    if (!modal) return;
 
     previousBodyOverflow =
       document.body.style.overflow;
 
-    modal.style.display =
-      "flex";
-
     document.body.style.overflow =
       "hidden";
 
-    setTimeout(function () {
-      if (titleInput) {
-        titleInput.focus();
-      }
-    }, 100);
+    modal.style.display =
+      "flex";
+
+    setTimeout(
+      function () {
+        if (input) {
+          input.focus();
+        }
+      },
+      50
+    );
   }
 
-  /* =======================================================
+  /* =========================================================
      EDIT VIP
-  ======================================================= */
+     ========================================================= */
 
   function editVIPNote(id) {
     const note =
       importantVIPNotes.find(
-        function (item) {
-          return item.id === id;
-        }
+        item => item.id === id
       );
 
     if (!note) {
-      showVIPToast(
-        "Note not found"
-      );
-
       return;
     }
 
@@ -2545,213 +2253,179 @@
     vipEditingId = id;
 
     const modal =
-      document.getElementById(
-        "importantVIPModal"
-      );
+      $("importantVIPModal");
 
     const title =
-      document.getElementById(
-        "vipModalTitle"
-      );
+      $("importantVIPModalTitle");
 
-    const titleInput =
-      document.getElementById(
-        "vipTitleInput"
-      );
+    const input =
+      $("importantVIPTitle");
 
-    const categoryInput =
-      document.getElementById(
-        "vipCategoryInput"
-      );
+    const category =
+      $("importantVIPCategory");
 
-    const noteInput =
-      document.getElementById(
-        "vipNoteInput"
-      );
-
-    const saveButton =
-      document.getElementById(
-        "vipSaveButton"
-      );
+    const content =
+      $("importantVIPContent");
 
     if (title) {
       title.textContent =
         "Edit Important Note";
     }
 
-    if (titleInput) {
-      titleInput.value =
+    if (input) {
+      input.value =
         note.title;
     }
 
-    if (categoryInput) {
-      categoryInput.value =
+    if (category) {
+      category.value =
         normalizeVIPCategory(
           note.category
         );
     }
 
-    if (noteInput) {
-      noteInput.value =
-        note.note;
+    if (content) {
+      content.value =
+        note.content;
     }
-
-    if (saveButton) {
-      saveButton.textContent =
-        "Update Important Note";
-    }
-
-    if (!modal) return;
 
     previousBodyOverflow =
       document.body.style.overflow;
 
-    modal.style.display =
-      "flex";
-
     document.body.style.overflow =
       "hidden";
 
-    setTimeout(function () {
-      if (titleInput) {
-        titleInput.focus();
-      }
-    }, 100);
+    modal.style.display =
+      "flex";
+
+    setTimeout(
+      function () {
+        if (input) {
+          input.focus();
+        }
+      },
+      50
+    );
   }
 
-  /* =======================================================
+  /* =========================================================
      CLOSE VIP MODAL
-  ======================================================= */
+     ========================================================= */
 
   function closeVIPModal() {
     const modal =
-      document.getElementById(
-        "importantVIPModal"
-      );
+      $("importantVIPModal");
 
-    if (modal) {
-      modal.style.display =
-        "none";
+    if (!modal) {
+      return;
     }
 
+    modal.style.display =
+      "none";
+
     document.body.style.overflow =
-      previousBodyOverflow;
+      previousBodyOverflow || "";
 
     vipEditingId = null;
   }
 
-  /* =======================================================
-     SAVE / UPDATE VIP
-  ======================================================= */
+  /* =========================================================
+     SAVE VIP NOTE
+     ========================================================= */
 
   function saveVIPNote() {
     const titleInput =
-      document.getElementById(
-        "vipTitleInput"
-      );
+      $("importantVIPTitle");
 
     const categoryInput =
-      document.getElementById(
-        "vipCategoryInput"
-      );
+      $("importantVIPCategory");
 
-    const noteInput =
-      document.getElementById(
-        "vipNoteInput"
-      );
+    const contentInput =
+      $("importantVIPContent");
 
     const title =
-      titleInput
-        ? titleInput.value.trim()
-        : "";
+      titleInput?.value.trim() || "";
 
     const category =
-      categoryInput
-        ? normalizeVIPCategory(
-            categoryInput.value
-          )
-        : "Other";
-
-    const noteText =
-      noteInput
-        ? noteInput.value.trim()
-        : "";
-
-    if (!title && !noteText) {
-      showVIPToast(
-        "Please enter a note"
+      normalizeVIPCategory(
+        categoryInput?.value
       );
 
-      if (noteInput) {
-        noteInput.focus();
-      }
+    const content =
+      contentInput?.value.trim() || "";
+
+    if (!title) {
+      showVIPToast(
+        "Please enter a title"
+      );
+
+      titleInput?.focus();
 
       return;
     }
 
-    const now =
-      new Date().toISOString();
+    if (!content) {
+      showVIPToast(
+        "Please enter your important note"
+      );
 
-    const wasEditing =
-      Boolean(vipEditingId);
+      contentInput?.focus();
 
-    if (wasEditing) {
-      const index =
-        importantVIPNotes.findIndex(
-          function (item) {
-            return (
-              item.id ===
-              vipEditingId
-            );
-          }
+      return;
+    }
+
+    if (vipEditingId) {
+      const note =
+        importantVIPNotes.find(
+          item =>
+            item.id ===
+            vipEditingId
         );
 
-      if (index === -1) {
-        showVIPToast(
-          "Note not found"
-        );
+      if (note) {
+        note.title =
+          title;
 
-        closeVIPModal();
+        note.category =
+          category;
 
-        return;
+        note.content =
+          content;
+
+        note.updatedAt =
+          nowISO();
       }
 
-      importantVIPNotes[index] = {
-        ...importantVIPNotes[index],
-        title:
-          title ||
-          "Important Note",
-        category:
-          category,
-        note:
-          noteText,
-        updatedAt:
-          now
-      };
+      showVIPToast(
+        "Important note updated"
+      );
     } else {
       importantVIPNotes.unshift({
         id:
           createVIPId(),
 
         title:
-          title ||
-          "Important Note",
+          title,
+
+        content:
+          content,
 
         category:
           category,
-
-        note:
-          noteText,
 
         pinned:
           false,
 
         createdAt:
-          now,
+          nowISO(),
 
         updatedAt:
-          now
+          nowISO()
       });
+
+      showVIPToast(
+        "Important note saved"
+      );
     }
 
     saveVIPNotes();
@@ -2759,39 +2433,25 @@
     closeVIPModal();
 
     renderVIPNotes();
-
-    showVIPToast(
-      wasEditing
-        ? "✓ Important Note updated"
-        : "✓ Important Note saved"
-    );
-
-    vipEditingId = null;
   }
 
-  /* =======================================================
+  /* =========================================================
      DELETE VIP
-  ======================================================= */
+     ========================================================= */
 
   function deleteVIPNote(id) {
     const note =
       importantVIPNotes.find(
-        function (item) {
-          return item.id === id;
-        }
+        item => item.id === id
       );
 
     if (!note) {
-      showVIPToast(
-        "Note not found"
-      );
-
       return;
     }
 
     const confirmed =
       window.confirm(
-        "Delete this important note?"
+        `Delete "${note.title}"?`
       );
 
     if (!confirmed) {
@@ -2800,9 +2460,7 @@
 
     importantVIPNotes =
       importantVIPNotes.filter(
-        function (item) {
-          return item.id !== id;
-        }
+        item => item.id !== id
       );
 
     saveVIPNotes();
@@ -2810,27 +2468,21 @@
     renderVIPNotes();
 
     showVIPToast(
-      "Important Note deleted"
+      "Important note deleted"
     );
   }
 
-  /* =======================================================
+  /* =========================================================
      PIN VIP
-  ======================================================= */
+     ========================================================= */
 
   function toggleVIPPin(id) {
     const note =
       importantVIPNotes.find(
-        function (item) {
-          return item.id === id;
-        }
+        item => item.id === id
       );
 
     if (!note) {
-      showVIPToast(
-        "Note not found"
-      );
-
       return;
     }
 
@@ -2838,7 +2490,7 @@
       !note.pinned;
 
     note.updatedAt =
-      new Date().toISOString();
+      nowISO();
 
     saveVIPNotes();
 
@@ -2846,247 +2498,203 @@
 
     showVIPToast(
       note.pinned
-        ? "📌 Note pinned"
+        ? "Note pinned"
         : "Note unpinned"
     );
   }
 
-  /* =======================================================
-     SEARCH VIP
-  ======================================================= */
+  /* =========================================================
+     SEARCH
+     ========================================================= */
 
   function getVIPSearchValue() {
-    const search =
-      document.getElementById(
-        "vipSearchInput"
-      );
+    const input =
+      $("importantVIPSearch");
 
-    if (!search) {
-      return "";
-    }
-
-    return search.value
-      .trim()
-      .toLowerCase();
+    return (
+      input?.value
+        ?.trim()
+        .toLowerCase() ||
+      ""
+    );
   }
 
-  /* =======================================================
+  /* =========================================================
      RENDER VIP
-  ======================================================= */
+     ========================================================= */
 
   function renderVIPNotes() {
-    const list =
-      document.getElementById(
-        "vipNotesList"
-      );
+    const container =
+      $("importantVIPNotesList");
 
-    const count =
-      document.getElementById(
-        "vipCount"
-      );
-
-    if (!list) return;
+    if (!container) {
+      return;
+    }
 
     const search =
       getVIPSearchValue();
 
+    const filter =
+      $("importantVIPFilter")
+        ?.value ||
+      "All";
+
     let notes =
       importantVIPNotes.filter(
-        function (item) {
-          if (!search) {
-            return true;
-          }
+        function (note) {
+          const searchable = (
+            note.title +
+            " " +
+            note.content +
+            " " +
+            note.category
+          ).toLowerCase();
 
-          const combined =
-            (
-              item.title +
-              " " +
-              item.note +
-              " " +
-              item.category
-            ).toLowerCase();
+          const matchesSearch =
+            !search ||
+            searchable.includes(search);
 
-          return combined.includes(
-            search
+          const matchesFilter =
+            filter === "All" ||
+            note.category === filter;
+
+          return (
+            matchesSearch &&
+            matchesFilter
           );
         }
       );
 
-    notes.sort(function (a, b) {
-      if (
-        Boolean(a.pinned) !==
-        Boolean(b.pinned)
-      ) {
-        return a.pinned ? -1 : 1;
-      }
+    notes.sort(
+      function (a, b) {
+        if (
+          a.pinned !== b.pinned
+        ) {
+          return a.pinned ? -1 : 1;
+        }
 
-      const aDate =
-        new Date(
-          a.updatedAt ||
-          a.createdAt
-        ).getTime();
-
-      const bDate =
-        new Date(
-          b.updatedAt ||
-          b.createdAt
-        ).getTime();
-
-      return bDate - aDate;
-    });
-
-    if (count) {
-      count.textContent =
-        notes.length +
-        (
-          notes.length === 1
-            ? " note"
-            : " notes"
+        return (
+          new Date(
+            b.updatedAt
+          ).getTime() -
+          new Date(
+            a.updatedAt
+          ).getTime()
         );
-    }
+      }
+    );
 
     if (!notes.length) {
-      list.innerHTML = `
-        <div class="vip-empty">
-
-          <div class="vip-empty-icon">
-            👑
-          </div>
-
-          <div class="vip-empty-title">
-            ${
-              search
-                ? "No notes found"
-                : "No Important VIP notes yet"
-            }
-          </div>
-
-          <div class="vip-empty-text">
-            ${
-              search
-                ? "Try another search"
-                : "Save important lessons, ideas or notes here"
-            }
-          </div>
-
+      container.innerHTML = `
+        <div class="a21-vip-empty">
+          ${importantVIPNotes.length
+            ? "No matching notes found"
+            : "No important notes yet. Add your first VIP note."}
         </div>
       `;
 
       return;
     }
 
-    list.innerHTML =
-      notes.map(function (item) {
-        const safeId =
-          escapeVIPHTML(
-            item.id
-          );
+    container.innerHTML =
+      notes.map(
+        function (note) {
+          return `
+            <article
+              class="a21-vip-card ${note.pinned ? "pinned" : ""}"
+            >
+              <div class="a21-vip-card-top">
+                <div>
+                  <div class="a21-vip-card-title">
+                    ${note.pinned ? "📌 " : ""}
+                    ${escapeVIPHTML(note.title)}
+                  </div>
 
-        return `
-          <article
-            class="vip-note-card ${
-              item.pinned
-                ? "is-pinned"
-                : ""
-            }"
-          >
-
-            <div class="vip-note-top">
-
-              <div class="vip-note-main">
-
-                <div class="vip-note-title">
-                  ${escapeVIPHTML(
-                    item.title
-                  )}
+                  <span class="a21-vip-category">
+                    ${escapeVIPHTML(note.category)}
+                  </span>
                 </div>
-
-                <span class="vip-note-category">
-                  ${escapeVIPHTML(
-                    item.category
-                  )}
-                </span>
-
               </div>
 
-              <div class="vip-note-actions">
+              <div class="a21-vip-content">
+                ${escapeVIPHTML(note.content)}
+              </div>
 
+              <div class="a21-vip-date">
+                Updated ${formatVIPDate(note.updatedAt)}
+              </div>
+
+              <div class="a21-vip-actions">
                 <button
                   type="button"
-                  class="vip-icon-btn ${
-                    item.pinned
-                      ? "pinned"
-                      : ""
-                  }"
+                  class="a21-vip-action pin"
                   data-vip-action="pin"
-                  data-vip-id="${safeId}"
-                  aria-label="Pin"
+                  data-vip-id="${escapeHTML(note.id)}"
                 >
-                  ${
-                    item.pinned
-                      ? "📌"
-                      : "📍"
-                  }
+                  ${note.pinned ? "Unpin" : "Pin"}
                 </button>
 
                 <button
                   type="button"
-                  class="vip-icon-btn"
+                  class="a21-vip-action"
                   data-vip-action="edit"
-                  data-vip-id="${safeId}"
-                  aria-label="Edit"
+                  data-vip-id="${escapeHTML(note.id)}"
                 >
-                  ✏️
+                  Edit
                 </button>
 
                 <button
                   type="button"
-                  class="vip-icon-btn"
+                  class="a21-vip-action delete"
                   data-vip-action="delete"
-                  data-vip-id="${safeId}"
-                  aria-label="Delete"
+                  data-vip-id="${escapeHTML(note.id)}"
                 >
-                  🗑️
+                  Delete
                 </button>
-
               </div>
-
-            </div>
-
-            <div class="vip-note-body">
-              ${escapeVIPHTML(
-                item.note
-              )}
-            </div>
-
-            <div class="vip-note-date">
-              ${
-                item.pinned
-                  ? "📌 Pinned • "
-                  : ""
-              }
-              Updated
-              ${escapeVIPHTML(
-                formatVIPDate(
-                  item.updatedAt
-                )
-              )}
-            </div>
-
-          </article>
-        `;
-      }).join("");
+            </article>
+          `;
+        }
+      ).join("");
   }
 
-  /* =======================================================
-     VIP EVENT DELEGATION
-  ======================================================= */
+  /* =========================================================
+     VIP EVENTS
+     ========================================================= */
 
   function setupVIPEvents() {
-    const list =
-      document.getElementById(
-        "vipNotesList"
+    const add =
+      $("importantVIPAddButton");
+
+    if (add) {
+      add.addEventListener(
+        "click",
+        openImportantVIP
       );
+    }
+
+    const search =
+      $("importantVIPSearch");
+
+    if (search) {
+      search.addEventListener(
+        "input",
+        renderVIPNotes
+      );
+    }
+
+    const filter =
+      $("importantVIPFilter");
+
+    if (filter) {
+      filter.addEventListener(
+        "change",
+        renderVIPNotes
+      );
+    }
+
+    const list =
+      $("importantVIPNotesList");
 
     if (list) {
       list.addEventListener(
@@ -3097,23 +2705,15 @@
               "[data-vip-action]"
             );
 
-          if (!button) return;
+          if (!button) {
+            return;
+          }
 
           const action =
-            button.getAttribute(
-              "data-vip-action"
-            );
+            button.dataset.vipAction;
 
           const id =
-            button.getAttribute(
-              "data-vip-id"
-            );
-
-          if (!id) return;
-
-          if (action === "pin") {
-            toggleVIPPin(id);
-          }
+            button.dataset.vipId;
 
           if (action === "edit") {
             editVIPNote(id);
@@ -3122,43 +2722,81 @@
           if (action === "delete") {
             deleteVIPNote(id);
           }
+
+          if (action === "pin") {
+            toggleVIPPin(id);
+          }
         }
       );
     }
 
-    const search =
-      document.getElementById(
-        "vipSearchInput"
-      );
+    const close =
+      $("importantVIPClose");
 
-    if (search) {
-      search.addEventListener(
-        "input",
-        function () {
-          renderVIPNotes();
+    if (close) {
+      close.addEventListener(
+        "click",
+        closeVIPModal
+      );
+    }
+
+    const cancel =
+      $("importantVIPCancel");
+
+    if (cancel) {
+      cancel.addEventListener(
+        "click",
+        closeVIPModal
+      );
+    }
+
+    const save =
+      $("importantVIPSave");
+
+    if (save) {
+      save.addEventListener(
+        "click",
+        saveVIPNote
+      );
+    }
+
+    const modal =
+      $("importantVIPModal");
+
+    if (modal) {
+      modal.addEventListener(
+        "click",
+        function (event) {
+          if (
+            event.target === modal
+          ) {
+            closeVIPModal();
+          }
         }
       );
     }
   }
 
-  /* =======================================================
+  /* =========================================================
      VIP TOAST
-  ======================================================= */
+     ========================================================= */
 
   function showVIPToast(message) {
     let toast =
-      document.getElementById(
-        "importantVIPToast"
-      );
+      $("importantVIPToast");
 
     if (!toast) {
       toast =
-        document.createElement(
-          "div"
-        );
+        document.createElement("div");
 
       toast.id =
         "importantVIPToast";
+
+      toast.className =
+        "a21-vip-toast";
+
+      toast.style.display =
+        "none";
 
       document.body.appendChild(
         toast
@@ -3166,9 +2804,10 @@
     }
 
     toast.textContent =
-      String(message || "");
+      safeText(message);
 
-    toast.classList.add("show");
+    toast.style.display =
+      "block";
 
     clearTimeout(
       toast._timer
@@ -3177,17 +2816,16 @@
     toast._timer =
       setTimeout(
         function () {
-          toast.classList.remove(
-            "show"
-          );
+          toast.style.display =
+            "none";
         },
         2200
       );
   }
 
-  /* =======================================================
-     INIT IMPORTANT VIP
-  ======================================================= */
+  /* =========================================================
+     INIT VIP
+     ========================================================= */
 
   function initImportantVIP() {
     if (vipInitialized) {
@@ -3209,201 +2847,120 @@
     renderVIPNotes();
   }
 
-  /* =======================================================
-     KEYBOARD
-  ======================================================= */
+  /* =========================================================
+     DASHBOARD EXTRA COMPATIBILITY
+     ========================================================= */
 
-  function setupKeyboard() {
-    document.addEventListener(
-      "keydown",
-      function (event) {
-        const target =
-          event.target;
+  function updateDashboardExtras() {
+    /*
+      Compatible aliases for the existing index.html
+    */
 
-        const tag =
-          target &&
-          target.tagName
-            ? target.tagName.toLowerCase()
-            : "";
-
-        if (
-          tag === "input" ||
-          tag === "textarea" ||
-          tag === "select"
-        ) {
-          return;
-        }
-
-        const session =
-          document.getElementById(
-            "sessionScreen"
-          );
-
-        if (
-          session &&
-          session.style.display !==
-            "none"
-        ) {
-          if (
-            event.key ===
-            "ArrowRight"
-          ) {
-            nextAffirmation();
-          }
-
-          if (
-            event.key ===
-            "ArrowLeft"
-          ) {
-            previousAffirmation();
-          }
-        }
+    try {
+      if (
+        typeof window.updateDashboardExtrasInternal ===
+        "function"
+      ) {
+        window.updateDashboardExtrasInternal();
       }
+    } catch (error) {
+      console.warn(
+        "Dashboard enhancement error:",
+        error
+      );
+    }
+  }
+
+  /* =========================================================
+     UPDATE EVERYTHING
+     ========================================================= */
+
+  function updateAllUI() {
+    updateDate();
+
+    updateHome();
+
+    loadJournal(
+      getActiveDay()
     );
+
+    updateCertificateAvailability();
+
+    renderVIPNotes();
+
+    updateDashboardExtras();
   }
 
-  /* =======================================================
-     BUTTON BINDING
-  ======================================================= */
+  /* =========================================================
+     IMPORTANT:
+     HTML COMPATIBILITY FUNCTIONS
+     ========================================================= */
 
-  function bindButtons() {
-    const morningButton =
-      document.getElementById(
-        "morningButton"
-      );
+  /*
+    Existing index.html calls:
 
-    const nightButton =
-      document.getElementById(
-        "nightButton"
-      );
+      openSession('morning')
+      openSession('night')
 
-    const doneButton =
-      document.getElementById(
-        "doneButton"
-      );
+    So we MUST expose this globally.
+  */
 
-    const previousButton =
-      document.getElementById(
-        "previousButton"
-      );
+  window.openSession =
+    function (type) {
+      if (type === "morning") {
+        startSession("morning");
 
-    const nextButton =
-      document.getElementById(
-        "nextButton"
-      );
+        return;
+      }
 
-    if (morningButton) {
-      morningButton.addEventListener(
-        "click",
-        function () {
-          startSession(
-            "morning"
-          );
-        }
-      );
-    }
+      if (type === "night") {
+        startSession("night");
 
-    if (nightButton) {
-      nightButton.addEventListener(
-        "click",
-        function () {
-          startSession(
-            "night"
-          );
-        }
-      );
-    }
+        return;
+      }
 
-    if (doneButton) {
-      doneButton.addEventListener(
-        "click",
-        function () {
-          finishSession();
-        }
-      );
-    }
+      startSession("morning");
+    };
 
-    if (previousButton) {
-      previousButton.addEventListener(
-        "click",
-        function () {
-          previousAffirmation();
-        }
-      );
-    }
+  /*
+    Existing index.html calls:
 
-    if (nextButton) {
-      nextButton.addEventListener(
-        "click",
-        function () {
-          nextAffirmation();
-        }
-      );
-    }
+      markDone()
+  */
 
-    document
-      .querySelectorAll(
-        "[data-home]"
-      )
-      .forEach(function (button) {
-        button.addEventListener(
-          "click",
-          goHome
-        );
-      });
+  window.markDone =
+    function () {
+      /*
+        The "ဖတ်ပြီးပါပြီ" button should
+        complete the current session.
+      */
 
-    document
-      .querySelectorAll(
-        "[data-reset]"
-      )
-      .forEach(function (button) {
-        button.addEventListener(
-          "click",
-          resetAll
-        );
-      });
+      finishSession();
+    };
 
-    document
-      .querySelectorAll(
-        "[data-certificate]"
-      )
-      .forEach(function (button) {
-        button.addEventListener(
-          "click",
-          showCertificate
-        );
-      });
+  /*
+    Existing index.html calls:
 
-    document
-      .querySelectorAll(
-        "[data-save-journal]"
-      )
-      .forEach(function (button) {
-        button.addEventListener(
-          "click",
-          saveJournal
-        );
-      });
-  }
+      continueAfterComplete()
+  */
 
-  /* =======================================================
+  window.continueAfterComplete =
+    function () {
+      goHome();
+    };
+
+  /* =========================================================
      GLOBAL FUNCTIONS
-     -------------------------------------------------------
-     Compatible with existing HTML onclick handlers
-  ======================================================= */
+     ========================================================= */
 
   window.startMorning =
     function () {
-      startSession(
-        "morning"
-      );
+      startSession("morning");
     };
 
   window.startNight =
     function () {
-      startSession(
-        "night"
-      );
+      startSession("night");
     };
 
   window.nextAffirmation =
@@ -3445,9 +3002,24 @@
   window.showVIPToast =
     showVIPToast;
 
-  /* =======================================================
-     INIT APP
-  ======================================================= */
+  window.calculateOverallProgress =
+    calculateOverallProgress;
+
+  window.countCompletedDays =
+    countCompletedDays;
+
+  window.getCompletedDays =
+    getCompletedDays;
+
+  window.calculateStreak =
+    calculateStreak;
+
+  window.getOverallProgress =
+    getOverallProgress;
+
+  /* =========================================================
+     INITIALIZATION
+     ========================================================= */
 
   function initApp() {
     if (appInitialized) {
@@ -3456,23 +3028,46 @@
 
     appInitialized = true;
 
-    appData =
-      loadData();
+    loadData();
+
+    loadVIPNotes();
+
+    updateDate();
 
     bindButtons();
 
+    setupKeyboard();
+
     setupJournalAutoSave();
 
-    setupKeyboard();
+    initImportantVIP();
 
     updateAllUI();
 
-    initImportantVIP();
+    /*
+      Start on Home screen
+    */
+
+    if (
+      !$("sessionScreen")?.classList.contains(
+        "active"
+      )
+    ) {
+      showScreen("homeScreen");
+    }
+
+    /*
+      Load today's active day
+    */
+
+    loadJournal(
+      getActiveDay()
+    );
   }
 
-  /* =======================================================
+  /* =========================================================
      DOM READY
-  ======================================================= */
+     ========================================================= */
 
   if (
     document.readyState ===
@@ -3480,7 +3075,10 @@
   ) {
     document.addEventListener(
       "DOMContentLoaded",
-      initApp
+      initApp,
+      {
+        once: true
+      }
     );
   } else {
     initApp();
