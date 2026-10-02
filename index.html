@@ -1,2154 +1,1838 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#6d4aff">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="21-Day Abundance">
-
+<meta name="theme-color" content="#0d0b08">
 <title>21-Day Abundance</title>
 
 <style>
-*{
-  box-sizing:border-box;
-  margin:0;
-  padding:0;
-}
-
 :root{
-  --primary:#6d4aff;
-  --primary-dark:#4f35c9;
-  --purple-soft:#eeeaff;
-  --cream:#fffaf2;
-  --bg:#f7f5ff;
-  --card:#ffffff;
-  --text:#211d2d;
-  --muted:#777184;
-  --border:#ebe7f4;
-  --success:#19a463;
-  --gold:#d49a21;
-  --danger:#dc4444;
-  --shadow:0 12px 35px rgba(49,36,105,.08);
+  --bg:#0d0b08;
+  --bg2:#15110c;
+  --card:#1b1610;
+  --card2:#211a12;
+  --gold:#d8ae5b;
+  --gold2:#f1d38b;
+  --text:#f7f1e5;
+  --muted:#a99d89;
+  --line:rgba(216,174,91,.18);
+  --green:#74c69d;
+  --danger:#e58b8b;
+  --shadow:0 18px 50px rgba(0,0,0,.28);
   --radius:22px;
 }
 
-html{
-  scroll-behavior:smooth;
-}
-
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
 body{
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "Noto Sans Myanmar",
-    "Myanmar Text",
-    sans-serif;
+  margin:0;
   background:
-    radial-gradient(circle at top right,#eeeaff 0,transparent 32%),
+    radial-gradient(circle at 80% 0%,rgba(216,174,91,.10),transparent 28%),
+    radial-gradient(circle at 0% 70%,rgba(216,174,91,.05),transparent 30%),
     var(--bg);
   color:var(--text);
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   min-height:100vh;
-  line-height:1.5;
 }
 
-button,
-input,
-textarea{
-  font:inherit;
-}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
 
-button{
-  cursor:pointer;
-}
-
-.hidden{
-  display:none!important;
-}
-
-/* =========================
-   APP HEADER
-========================= */
-
-.app-header{
-  position:sticky;
-  top:0;
-  z-index:100;
-  background:rgba(247,245,255,.92);
-  backdrop-filter:blur(18px);
-  border-bottom:1px solid rgba(235,231,244,.8);
-}
-
-.header-inner{
-  max-width:1050px;
+.app{
+  width:min(1180px,100%);
   margin:auto;
-  padding:
-    max(14px,env(safe-area-inset-top))
-    18px
-    14px;
+  min-height:100vh;
+  padding-bottom:90px;
+}
+
+header{
+  padding:24px 18px 10px;
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:14px;
+  gap:12px;
 }
 
 .brand{
   display:flex;
   align-items:center;
-  gap:11px;
-  min-width:0;
+  gap:12px;
 }
 
-.brand-icon{
-  width:43px;
-  height:43px;
-  flex:0 0 43px;
-  border-radius:14px;
+.logo{
+  width:44px;
+  height:44px;
+  border-radius:50%;
   display:grid;
   place-items:center;
-  color:white;
-  font-size:20px;
-  background:linear-gradient(135deg,#7c5cff,#5a3be0);
-  box-shadow:0 8px 18px rgba(109,74,255,.25);
-}
-
-.brand-text{
-  min-width:0;
+  border:1px solid rgba(216,174,91,.5);
+  background:linear-gradient(145deg,#2a2116,#0f0d0a);
+  color:var(--gold2);
+  font-size:21px;
+  box-shadow:0 0 30px rgba(216,174,91,.10);
 }
 
 .brand-title{
-  font-size:16px;
+  font-size:18px;
   font-weight:800;
-  letter-spacing:-.2px;
+  letter-spacing:.2px;
 }
 
-.brand-subtitle{
-  color:var(--muted);
+.brand-sub{
   font-size:11px;
-  white-space:nowrap;
+  color:var(--muted);
+  margin-top:2px;
 }
 
-.reset-btn{
-  border:1px solid var(--border);
-  background:white;
-  color:#6d6678;
-  border-radius:12px;
-  padding:9px 12px;
-  font-size:12px;
-  font-weight:700;
+.header-actions{
+  display:flex;
+  gap:8px;
 }
 
-/* =========================
-   APP CONTAINER
-========================= */
-
-.app{
-  max-width:1050px;
-  margin:auto;
-  padding:22px 16px 50px;
+.icon-btn{
+  width:40px;
+  height:40px;
+  border:1px solid var(--line);
+  border-radius:13px;
+  background:rgba(255,255,255,.03);
+  color:var(--text);
 }
 
-/* =========================
-   DASHBOARD HERO
-========================= */
+.page{
+  display:none;
+  padding:10px 18px 20px;
+}
 
-.dashboard-hero{
+.page.active{display:block}
+
+.hero{
+  margin-top:8px;
+  padding:26px 22px;
+  border:1px solid var(--line);
+  border-radius:28px;
+  background:
+    linear-gradient(145deg,rgba(216,174,91,.10),rgba(255,255,255,.025)),
+    var(--card);
+  box-shadow:var(--shadow);
   position:relative;
   overflow:hidden;
-  padding:26px;
-  border-radius:28px;
-  color:white;
-  background:
-    radial-gradient(circle at 90% 10%,rgba(255,255,255,.2),transparent 25%),
-    linear-gradient(135deg,#6d4aff,#8b6cff 55%,#563bd0);
-  box-shadow:0 18px 45px rgba(79,53,201,.22);
-  margin-bottom:18px;
 }
 
-.dashboard-hero::after{
-  content:"";
+.hero:after{
+  content:"✦";
   position:absolute;
-  width:170px;
-  height:170px;
-  right:-65px;
-  bottom:-80px;
-  border-radius:50%;
-  background:rgba(255,255,255,.09);
-}
-
-.hero-top{
-  position:relative;
-  z-index:1;
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:15px;
+  right:24px;
+  top:18px;
+  color:rgba(216,174,91,.35);
+  font-size:42px;
 }
 
 .eyebrow{
+  color:var(--gold2);
+  text-transform:uppercase;
+  letter-spacing:2px;
   font-size:11px;
   font-weight:800;
-  letter-spacing:1.3px;
-  opacity:.78;
 }
 
-.hero-title{
-  margin-top:5px;
-  font-size:27px;
-  font-weight:850;
-  letter-spacing:-.8px;
+.hero h1{
+  font-size:clamp(30px,8vw,52px);
+  line-height:1.05;
+  margin:10px 0 8px;
 }
 
-.hero-message{
-  margin-top:5px;
+.hero p{
+  margin:0;
+  color:var(--muted);
+  line-height:1.6;
+}
+
+.day-row{
+  margin-top:22px;
+  display:flex;
+  align-items:end;
+  justify-content:space-between;
+  gap:15px;
+}
+
+.day-number{
+  font-size:44px;
+  font-weight:900;
+  color:var(--gold2);
+}
+
+.day-label{
+  color:var(--muted);
   font-size:13px;
-  opacity:.84;
 }
 
-.day-pill{
-  flex-shrink:0;
-  background:rgba(255,255,255,.16);
-  border:1px solid rgba(255,255,255,.2);
-  border-radius:14px;
-  padding:9px 12px;
-  text-align:center;
+.date-text{
+  color:var(--muted);
+  font-size:12px;
+  text-align:right;
 }
 
-.day-pill strong{
-  display:block;
-  font-size:17px;
+.progress-wrap{
+  margin-top:18px;
 }
 
-.day-pill span{
-  display:block;
-  font-size:9px;
-  opacity:.75;
-  text-transform:uppercase;
-  letter-spacing:.8px;
-}
-
-.hero-progress{
-  position:relative;
-  z-index:1;
-  margin-top:24px;
-}
-
-.progress-meta{
+.progress-top{
   display:flex;
   justify-content:space-between;
-  align-items:center;
+  color:var(--muted);
+  font-size:12px;
   margin-bottom:8px;
-  font-size:11px;
-  font-weight:700;
-  opacity:.9;
 }
 
-.progress-track{
+.progress{
+  width:100%;
   height:9px;
-  border-radius:99px;
-  background:rgba(255,255,255,.2);
+  border-radius:20px;
+  background:#2a241c;
   overflow:hidden;
 }
 
-.progress-fill{
+.progress > span{
+  display:block;
   height:100%;
-  width:0%;
-  border-radius:inherit;
-  background:white;
-  transition:width .35s ease;
+  width:0;
+  border-radius:20px;
+  background:linear-gradient(90deg,var(--gold),var(--gold2));
+  transition:.35s ease;
 }
 
-.hero-bottom{
-  position:relative;
-  z-index:1;
-  display:flex;
-  justify-content:space-between;
-  gap:15px;
-  margin-top:12px;
-  font-size:11px;
-  opacity:.82;
-}
-
-/* =========================
-   STATS
-========================= */
-
-.stats-grid{
+.stats{
   display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:12px;
-  margin-bottom:18px;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-top:12px;
 }
 
-.stat-card{
+.stat{
   background:var(--card);
-  border:1px solid var(--border);
+  border:1px solid var(--line);
   border-radius:18px;
-  padding:17px;
-  box-shadow:var(--shadow);
+  padding:16px 13px;
+  text-align:center;
 }
 
 .stat-icon{
   font-size:18px;
+  color:var(--gold2);
 }
 
-.stat-number{
-  margin-top:7px;
+.stat-value{
   font-size:23px;
   font-weight:850;
-  letter-spacing:-.6px;
+  margin-top:5px;
 }
 
 .stat-label{
-  margin-top:2px;
   color:var(--muted);
-  font-size:11px;
-  font-weight:600;
+  font-size:10px;
+  margin-top:3px;
 }
-
-/* =========================
-   SECTION
-========================= */
 
 .section{
-  margin-top:22px;
-}
-
-.section-heading{
-  display:flex;
-  align-items:flex-end;
-  justify-content:space-between;
-  gap:10px;
-  margin-bottom:12px;
+  margin-top:18px;
 }
 
 .section-title{
-  font-size:18px;
-  font-weight:850;
-  letter-spacing:-.35px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
 }
 
-.section-subtitle{
+.section-title h2{
+  margin:0;
+  font-size:17px;
+}
+
+.section-title span{
   color:var(--muted);
   font-size:11px;
-  margin-top:2px;
 }
-
-/* =========================
-   PRACTICE CARDS
-========================= */
 
 .practice-grid{
   display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:14px;
-}
-
-.practice-card{
-  background:white;
-  border:1px solid var(--border);
-  border-radius:22px;
-  padding:20px;
-  box-shadow:var(--shadow);
-}
-
-.practice-card.morning{
-  background:linear-gradient(145deg,#fffdf6,#fff8e7);
-}
-
-.practice-card.night{
-  background:linear-gradient(145deg,#fbf9ff,#f1edff);
-}
-
-.practice-top{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
   gap:12px;
 }
 
-.practice-icon{
-  width:43px;
-  height:43px;
-  border-radius:14px;
-  display:grid;
-  place-items:center;
-  font-size:20px;
-  background:white;
-  box-shadow:0 5px 16px rgba(40,30,70,.08);
+.practice-card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:17px;
+}
+
+.practice-head{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:center;
 }
 
 .practice-name{
-  margin-top:14px;
-  font-size:17px;
-  font-weight:850;
-}
-
-.practice-count{
-  margin-top:2px;
-  color:var(--muted);
-  font-size:11px;
-}
-
-.mini-track{
-  height:7px;
-  margin-top:15px;
-  border-radius:99px;
-  background:#ece8f2;
-  overflow:hidden;
-}
-
-.mini-fill{
-  height:100%;
-  width:0%;
-  border-radius:inherit;
-  background:var(--primary);
-  transition:width .3s ease;
-}
-
-.practice-status{
-  margin-top:9px;
-  color:var(--muted);
-  font-size:11px;
-}
-
-.primary-btn{
-  width:100%;
-  margin-top:16px;
-  border:0;
-  border-radius:14px;
-  padding:13px 16px;
-  color:white;
-  background:linear-gradient(135deg,#6d4aff,#5738d2);
+  display:flex;
+  align-items:center;
+  gap:10px;
   font-weight:800;
-  font-size:13px;
-  box-shadow:0 8px 18px rgba(109,74,255,.2);
 }
 
-.primary-btn.completed{
-  background:linear-gradient(135deg,#19a463,#12834e);
-}
-
-/* =========================
-   QUICK ACTIONS
-========================= */
-
-.quick-grid{
+.time-dot{
+  width:38px;
+  height:38px;
   display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:11px;
+  place-items:center;
+  border-radius:13px;
+  background:rgba(216,174,91,.10);
+  color:var(--gold2);
+  border:1px solid var(--line);
 }
 
-.quick-btn{
-  border:1px solid var(--border);
-  background:white;
-  border-radius:17px;
-  padding:16px 10px;
-  text-align:center;
-  box-shadow:var(--shadow);
+.counter{
+  font-size:14px;
+  color:var(--gold2);
+  font-weight:800;
+}
+
+.practice-goal{
+  margin:13px 0;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.5;
+}
+
+.counter-controls{
+  display:flex;
+  gap:8px;
+}
+
+.counter-btn{
+  border:1px solid var(--line);
+  background:#241c13;
   color:var(--text);
-  font-weight:750;
-  font-size:11px;
+  height:46px;
+  border-radius:14px;
 }
 
-.quick-btn span{
-  display:block;
-  font-size:21px;
-  margin-bottom:6px;
+.counter-btn.minus{width:48px}
+.counter-btn.plus{
+  flex:1;
+  background:linear-gradient(135deg,#4a371c,#302414);
+  color:var(--gold2);
+  font-weight:800;
 }
 
-/* =========================
-   JOURNEY
-========================= */
+.complete-card{
+  margin-top:15px;
+  padding:18px;
+  border:1px solid var(--line);
+  background:var(--card);
+  border-radius:22px;
+}
 
-.journey-card{
-  background:white;
-  border:1px solid var(--border);
+.primary{
+  width:100%;
+  border:0;
+  padding:15px 18px;
+  border-radius:15px;
+  background:linear-gradient(135deg,#d9b15e,#9d7633);
+  color:#171108;
+  font-weight:900;
+  box-shadow:0 10px 30px rgba(216,174,91,.14);
+}
+
+.primary:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
+.secondary{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.035);
+  color:var(--text);
+  padding:12px 15px;
+  border-radius:13px;
+}
+
+.two-col{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
   border-radius:22px;
   padding:18px;
-  box-shadow:var(--shadow);
+}
+
+.card h3{
+  margin:0 0 7px;
+  font-size:16px;
+}
+
+.card p{
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.6;
+  margin:0;
+}
+
+.goal-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+}
+
+.goal{
+  text-align:left;
+  border:1px solid var(--line);
+  background:var(--card);
+  color:var(--text);
+  padding:16px;
+  border-radius:18px;
+  min-height:92px;
+}
+
+.goal.selected{
+  border-color:var(--gold);
+  background:rgba(216,174,91,.10);
+}
+
+.goal-icon{
+  font-size:23px;
+  margin-bottom:8px;
+}
+
+.goal-name{
+  font-weight:800;
+  font-size:13px;
+}
+
+.goal-desc{
+  color:var(--muted);
+  font-size:10px;
+  margin-top:3px;
+}
+
+.form-group{
+  margin-top:12px;
+}
+
+label{
+  display:block;
+  color:var(--muted);
+  font-size:11px;
+  margin-bottom:7px;
+}
+
+input,textarea,select{
+  width:100%;
+  border:1px solid var(--line);
+  background:#12100d;
+  color:var(--text);
+  outline:none;
+  border-radius:14px;
+  padding:13px 14px;
+}
+
+textarea{
+  min-height:130px;
+  resize:vertical;
+}
+
+input:focus,textarea:focus,select:focus{
+  border-color:rgba(216,174,91,.6);
+}
+
+.history-list{
+  display:grid;
+  gap:9px;
+}
+
+.history-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px;
+  border-radius:17px;
+  background:var(--card);
+  border:1px solid var(--line);
+}
+
+.history-day{
+  width:43px;
+  height:43px;
+  display:grid;
+  place-items:center;
+  border-radius:14px;
+  background:#241c13;
+  color:var(--gold2);
+  font-weight:900;
+}
+
+.history-info{
+  flex:1;
+  min-width:0;
+}
+
+.history-info strong{
+  display:block;
+  font-size:13px;
+}
+
+.history-info span{
+  display:block;
+  color:var(--muted);
+  font-size:10px;
+  margin-top:3px;
+}
+
+.status{
+  font-size:11px;
+  font-weight:800;
+}
+
+.status.done{color:var(--green)}
+.status.open{color:var(--muted)}
+
+.journal-tabs{
+  display:flex;
+  gap:8px;
+  margin-bottom:12px;
+}
+
+.tab{
+  flex:1;
+  border:1px solid var(--line);
+  background:var(--card);
+  color:var(--muted);
+  padding:11px;
+  border-radius:13px;
+  font-size:12px;
+}
+
+.tab.active{
+  color:var(--gold2);
+  border-color:rgba(216,174,91,.5);
+}
+
+.save-row{
+  display:flex;
+  justify-content:flex-end;
+  margin-top:10px;
 }
 
 .days-grid{
   display:grid;
   grid-template-columns:repeat(7,1fr);
-  gap:8px;
+  gap:7px;
 }
 
-.day-button{
-  min-height:55px;
-  border:1px solid var(--border);
+.day-cell{
+  aspect-ratio:1;
+  border:1px solid var(--line);
   border-radius:13px;
-  background:#faf9fc;
-  color:var(--muted);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:2px;
-  font-weight:800;
-}
-
-.day-button span:first-child{
-  font-size:14px;
-  color:var(--text);
-}
-
-.day-button span:last-child{
-  font-size:8px;
-  font-weight:700;
-}
-
-.day-button.active{
-  border-color:var(--primary);
-  background:var(--purple-soft);
-  box-shadow:inset 0 0 0 1px var(--primary);
-}
-
-.day-button.active span:first-child{
-  color:var(--primary);
-}
-
-.day-button.completed{
-  border-color:#bce8d2;
-  background:#effaf4;
-}
-
-.day-button.completed span:first-child{
-  color:var(--success);
-}
-
-/* =========================
-   MINDSET
-========================= */
-
-.mindset-card{
-  background:linear-gradient(135deg,#fff,#f8f5ff);
-  border:1px solid var(--border);
-  border-radius:22px;
-  padding:20px;
-  box-shadow:var(--shadow);
-}
-
-.mindset-label{
-  color:var(--primary);
-  font-size:10px;
-  font-weight:850;
-  letter-spacing:1px;
-  text-transform:uppercase;
-}
-
-.mindset-row{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:14px;
-  margin-top:14px;
-}
-
-.mindset-box{
-  background:white;
-  border:1px solid var(--border);
-  border-radius:15px;
-  padding:14px;
-}
-
-.mindset-box h4{
-  font-size:12px;
-  margin-bottom:7px;
-}
-
-.mindset-box p{
-  color:var(--muted);
-  font-size:11px;
-  min-height:34px;
-  white-space:pre-wrap;
-  word-break:break-word;
-}
-
-/* =========================
-   ACHIEVEMENTS
-========================= */
-
-.achievement-grid{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:11px;
-}
-
-.achievement{
-  border:1px solid var(--border);
-  background:white;
-  border-radius:18px;
-  padding:15px;
-  box-shadow:var(--shadow);
-}
-
-.achievement.locked{
-  opacity:.55;
-}
-
-.achievement-icon{
-  font-size:23px;
-}
-
-.achievement-title{
-  margin-top:7px;
-  font-size:11px;
-  font-weight:850;
-}
-
-.achievement-status{
-  margin-top:3px;
-  color:var(--muted);
-  font-size:9px;
-}
-
-/* =========================
-   JOURNAL
-========================= */
-
-.form-card{
-  background:white;
-  border:1px solid var(--border);
-  border-radius:22px;
-  padding:20px;
-  box-shadow:var(--shadow);
-}
-
-.form-group{
-  margin-bottom:15px;
-}
-
-.form-group:last-child{
-  margin-bottom:0;
-}
-
-.form-label{
-  display:block;
-  margin-bottom:7px;
-  font-size:12px;
-  font-weight:800;
-}
-
-textarea{
-  width:100%;
-  min-height:85px;
-  resize:vertical;
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:12px;
-  outline:none;
-  background:#fbfaff;
-  color:var(--text);
-  font-size:12px;
-}
-
-textarea:focus{
-  border-color:var(--primary);
-  box-shadow:0 0 0 3px rgba(109,74,255,.08);
-}
-
-.gratitude-grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:10px;
-}
-
-/* =========================
-   SAVE STATUS
-========================= */
-
-.save-status{
-  text-align:right;
-  color:var(--success);
-  font-size:10px;
-  margin-top:7px;
-}
-
-/* =========================
-   SESSION SCREEN
-========================= */
-
-.session-shell{
-  max-width:720px;
-  margin:0 auto;
-}
-
-.session-header{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-
-.back-btn{
-  width:40px;
-  height:40px;
-  border:1px solid var(--border);
-  border-radius:13px;
-  background:white;
-}
-
-.session-heading{
-  flex:1;
-}
-
-.session-heading strong{
-  display:block;
-  font-size:15px;
-}
-
-.session-heading span{
-  display:block;
-  color:var(--muted);
-  font-size:10px;
-}
-
-.session-counter{
-  color:var(--primary);
-  font-size:12px;
-  font-weight:800;
-}
-
-.session-progress-wrap{
-  margin-top:20px;
-}
-
-.session-progress-track{
-  height:8px;
-  background:#e9e5f0;
-  border-radius:99px;
-  overflow:hidden;
-}
-
-.session-progress-fill{
-  height:100%;
-  width:0%;
-  background:var(--primary);
-  border-radius:inherit;
-  transition:width .3s ease;
-}
-
-.session-progress-text{
-  margin-top:7px;
-  color:var(--muted);
-  font-size:10px;
-  text-align:right;
-}
-
-.affirmation-card{
-  margin-top:18px;
-  background:white;
-  border:1px solid var(--border);
-  border-radius:26px;
-  padding:28px 22px;
-  box-shadow:var(--shadow);
-  text-align:center;
-}
-
-.affirmation-number{
-  width:42px;
-  height:42px;
-  margin:0 auto 17px;
   display:grid;
   place-items:center;
-  border-radius:50%;
-  background:var(--purple-soft);
-  color:var(--primary);
-  font-weight:850;
-}
-
-.affirmation-text{
-  font-size:18px;
-  line-height:1.9;
+  background:var(--card);
+  color:var(--muted);
+  font-size:12px;
   font-weight:700;
 }
 
-.practice-tip{
-  margin-top:17px;
-  padding:13px 15px;
-  border-radius:15px;
-  background:#faf8ff;
-  color:var(--muted);
-  font-size:11px;
-  text-align:center;
+.day-cell.current{
+  border-color:var(--gold);
+  color:var(--gold2);
 }
 
-.done-btn{
-  width:100%;
-  margin-top:16px;
-  border:0;
-  border-radius:15px;
-  padding:14px;
-  background:var(--primary);
-  color:white;
-  font-weight:850;
+.day-cell.done{
+  background:rgba(116,198,157,.10);
+  color:var(--green);
+  border-color:rgba(116,198,157,.35);
 }
 
-.done-btn.completed{
-  background:var(--success);
+.settings-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:15px 0;
+  border-bottom:1px solid var(--line);
 }
 
-.session-nav{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin-top:10px;
-}
+.settings-row:last-child{border-bottom:0}
 
-.secondary-btn{
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:12px;
-  background:white;
-  font-weight:750;
-}
-
-.secondary-btn:disabled{
-  opacity:.4;
-  cursor:not-allowed;
-}
-
-/* =========================
-   COMPLETE
-========================= */
-
-.complete-shell,
-.certificate-shell{
-  max-width:650px;
-  margin:20px auto;
-  text-align:center;
-}
-
-.complete-card,
-.certificate-card{
-  background:white;
-  border:1px solid var(--border);
-  border-radius:28px;
-  padding:35px 22px;
-  box-shadow:var(--shadow);
-}
-
-.trophy{
-  font-size:55px;
-}
-
-.complete-title{
-  margin-top:13px;
-  font-size:25px;
-  font-weight:900;
-}
-
-.complete-message{
-  margin-top:8px;
-  color:var(--muted);
+.settings-label strong{
+  display:block;
   font-size:13px;
 }
 
-.complete-stats{
-  display:flex;
-  justify-content:center;
-  gap:30px;
-  margin:24px 0;
-}
-
-.complete-stat strong{
+.settings-label span{
   display:block;
-  font-size:24px;
-}
-
-.complete-stat span{
   color:var(--muted);
   font-size:10px;
+  margin-top:3px;
 }
 
-/* =========================
-   CERTIFICATE
-========================= */
-
-.certificate-card{
-  border:2px solid #d7c9ff;
-  background:
-    radial-gradient(circle at top,#f4efff,transparent 45%),
-    white;
+.bottom-nav{
+  position:fixed;
+  left:50%;
+  bottom:10px;
+  transform:translateX(-50%);
+  width:min(560px,calc(100% - 20px));
+  padding:8px;
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:4px;
+  border:1px solid var(--line);
+  background:rgba(20,16,11,.94);
+  backdrop-filter:blur(18px);
+  border-radius:20px;
+  z-index:50;
+  box-shadow:0 15px 50px rgba(0,0,0,.4);
 }
 
-.certificate-label{
-  color:var(--primary);
-  font-size:11px;
-  font-weight:850;
-  letter-spacing:2px;
-}
-
-.certificate-title{
-  margin-top:12px;
-  font-size:30px;
-  font-weight:900;
-}
-
-.certificate-name{
-  margin-top:25px;
-  font-size:23px;
-  font-weight:850;
-}
-
-.certificate-date{
-  margin-top:5px;
+.nav-btn{
+  border:0;
+  background:transparent;
   color:var(--muted);
-  font-size:11px;
+  padding:9px 3px;
+  border-radius:14px;
+  font-size:9px;
 }
 
-.badges{
-  display:flex;
+.nav-icon{
+  display:block;
+  font-size:18px;
+  margin-bottom:3px;
+}
+
+.nav-btn.active{
+  color:var(--gold2);
+  background:rgba(216,174,91,.09);
+}
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.7);
+  backdrop-filter:blur(8px);
+  display:none;
+  align-items:flex-end;
   justify-content:center;
-  gap:10px;
-  margin-top:25px;
-  flex-wrap:wrap;
+  z-index:100;
 }
 
-.badge{
-  padding:9px 13px;
-  border-radius:99px;
-  background:var(--purple-soft);
-  color:var(--primary);
-  font-size:10px;
-  font-weight:800;
+.modal.show{display:flex}
+
+.modal-box{
+  width:min(600px,100%);
+  background:#17130e;
+  border:1px solid var(--line);
+  border-radius:26px 26px 0 0;
+  padding:22px;
+  max-height:88vh;
+  overflow:auto;
 }
 
-/* =========================
-   RESPONSIVE
-========================= */
-
-@media(max-width:800px){
-
-  .stats-grid{
-    grid-template-columns:repeat(2,1fr);
-  }
-
-  .achievement-grid{
-    grid-template-columns:repeat(2,1fr);
-  }
-
+.modal-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:15px;
 }
 
-@media(max-width:600px){
-
-  .app{
-    padding:17px 13px 40px;
-  }
-
-  .dashboard-hero{
-    padding:21px;
-    border-radius:24px;
-  }
-
-  .hero-title{
-    font-size:24px;
-  }
-
-  .practice-grid{
-    grid-template-columns:1fr;
-  }
-
-  .quick-grid{
-    grid-template-columns:repeat(2,1fr);
-  }
-
-  .days-grid{
-    grid-template-columns:repeat(7,1fr);
-    gap:6px;
-  }
-
-  .day-button{
-    min-height:49px;
-    border-radius:11px;
-  }
-
-  .day-button span:last-child{
-    font-size:7px;
-  }
-
-  .mindset-row{
-    grid-template-columns:1fr;
-  }
-
-  .gratitude-grid{
-    grid-template-columns:1fr;
-  }
-
-  .affirmation-text{
-    font-size:16px;
-    line-height:1.85;
-  }
-
+.modal-head h2{
+  margin:0;
+  font-size:19px;
 }
 
-@media(max-width:380px){
+.close{
+  width:38px;
+  height:38px;
+  border:1px solid var(--line);
+  background:transparent;
+  color:var(--text);
+  border-radius:12px;
+}
 
-  .header-inner{
-    padding-left:12px;
-    padding-right:12px;
+.toast{
+  position:fixed;
+  left:50%;
+  top:20px;
+  transform:translate(-50%,-20px);
+  opacity:0;
+  pointer-events:none;
+  z-index:200;
+  padding:12px 17px;
+  border-radius:14px;
+  background:#262016;
+  border:1px solid var(--line);
+  color:var(--gold2);
+  font-size:12px;
+  transition:.25s ease;
+}
+
+.toast.show{
+  opacity:1;
+  transform:translate(-50%,0);
+}
+
+.empty{
+  text-align:center;
+  padding:30px 15px;
+  color:var(--muted);
+  font-size:12px;
+}
+
+@media(min-width:760px){
+  .app{padding-bottom:30px}
+  .page{padding-left:30px;padding-right:30px}
+  header{padding-left:30px;padding-right:30px}
+  .practice-grid{grid-template-columns:repeat(3,1fr)}
+  .goal-grid{grid-template-columns:repeat(3,1fr)}
+  .bottom-nav{
+    position:sticky;
+    top:0;
+    bottom:auto;
+    transform:none;
+    margin:0 auto 15px;
   }
+}
 
-  .brand-title{
-    font-size:14px;
-  }
-
-  .brand-subtitle{
-    display:none;
-  }
-
-  .stat-card{
-    padding:14px;
-  }
-
-  .stat-number{
-    font-size:20px;
-  }
-
+@media(max-width:420px){
+  .stats{gap:7px}
+  .stat{padding:13px 8px}
+  .stat-value{font-size:20px}
+  .two-col{grid-template-columns:1fr}
 }
 </style>
 </head>
 
 <body>
 
-<header class="app-header">
-  <div class="header-inner">
+<div class="app">
 
-    <div class="brand">
-      <div class="brand-icon">✦</div>
-
-      <div class="brand-text">
-        <div class="brand-title">21-Day Abundance</div>
-        <div class="brand-subtitle">Your Journey • Your Growth</div>
-      </div>
+<header>
+  <div class="brand">
+    <div class="logo">✦</div>
+    <div>
+      <div class="brand-title">21-Day Abundance</div>
+      <div class="brand-sub" id="brandSub">Your Journey • Your Growth</div>
     </div>
+  </div>
 
-    <button
-      class="reset-btn"
-      type="button"
-      onclick="resetAll()">
-      Reset
-    </button>
-
+  <div class="header-actions">
+    <button class="icon-btn" onclick="openSettings()" aria-label="Settings">⚙</button>
   </div>
 </header>
 
+<!-- HOME -->
+<section class="page active" id="homePage">
 
-<main class="app">
+  <div class="hero">
+    <div class="eyebrow" id="journeyLabel">YOUR ABUNDANCE JOURNEY</div>
+    <h1 id="dayTitle">Day 1</h1>
+    <p id="dailyQuote">Stay consistent. Stay grateful. Keep growing.</p>
 
-
-<!-- =====================================================
-     HOME / DASHBOARD
-===================================================== -->
-
-<section id="homeScreen">
-
-
-  <!-- HERO -->
-
-  <section class="dashboard-hero">
-
-    <div class="hero-top">
-
+    <div class="day-row">
       <div>
-        <div class="eyebrow">
-          YOUR ABUNDANCE JOURNEY
-        </div>
-
-        <h1 class="hero-title">
-          <span id="dayTitle">Day 1</span>
-        </h1>
-
-        <p class="hero-message">
-          Stay consistent. Stay grateful. Keep growing.
-        </p>
+        <div class="day-number"><span id="currentDay">1</span><small style="font-size:16px;color:var(--muted)"> / 21</small></div>
+        <div class="day-label" id="dayProgressLabel">days completed</div>
       </div>
-
-      <div class="day-pill">
-        <strong id="heroDayNumber">1</strong>
-        <span>of 21 days</span>
-      </div>
-
+      <div class="date-text" id="todayDate"></div>
     </div>
 
-
-    <div class="hero-progress">
-
-      <div class="progress-meta">
-        <span>Overall Progress</span>
-        <strong id="overallText">0%</strong>
+    <div class="progress-wrap">
+      <div class="progress-top">
+        <span id="overallLabel">Overall Progress</span>
+        <strong id="overallPercent">0%</strong>
       </div>
-
-      <div class="progress-track">
-        <div
-          id="overallProgress"
-          class="progress-fill">
-        </div>
-      </div>
-
+      <div class="progress"><span id="overallBar"></span></div>
     </div>
+  </div>
 
-
-    <div class="hero-bottom">
-      <span>
-        <strong id="completedDaysText">0 / 21</strong>
-        days complete
-      </span>
-
-      <span id="todayDate">
-        —
-      </span>
-    </div>
-
-  </section>
-
-
-  <!-- STATS -->
-
-  <section class="stats-grid">
-
-    <div class="stat-card">
+  <div class="stats">
+    <div class="stat">
       <div class="stat-icon">🔥</div>
-      <div
-        id="streakNumber"
-        class="stat-number">
-        0
-      </div>
-      <div class="stat-label">
-        Current Streak
-      </div>
+      <div class="stat-value" id="streakStat">0</div>
+      <div class="stat-label" id="streakLabel">Current Streak</div>
     </div>
 
-    <div class="stat-card">
+    <div class="stat">
       <div class="stat-icon">✓</div>
-      <div
-        id="totalCompletedText"
-        class="stat-number">
-        0
-      </div>
-      <div class="stat-label">
-        Practices Done
-      </div>
+      <div class="stat-value" id="practiceStat">0</div>
+      <div class="stat-label" id="practiceLabel">Practices Done</div>
     </div>
 
-    <div class="stat-card">
+    <div class="stat">
       <div class="stat-icon">◈</div>
-      <div
-        id="todayPercent"
-        class="stat-number">
-        0%
-      </div>
-      <div class="stat-label">
-        Current Day
-      </div>
+      <div class="stat-value" id="todayPercent">0%</div>
+      <div class="stat-label" id="todayLabel">Today's Progress</div>
     </div>
+  </div>
 
-    <div class="stat-card">
-      <div class="stat-icon">◎</div>
-      <div
-        id="heroDayNumber2"
-        class="stat-number">
-        1
-      </div>
-      <div class="stat-label">
-        Current Day
-      </div>
+  <div class="section">
+    <div class="section-title">
+      <h2 id="practiceTitle">Today's Practices</h2>
+      <span id="goalMini">No goal selected</span>
     </div>
-
-  </section>
-
-
-  <!-- TODAY'S PRACTICE -->
-
-  <section class="section">
-
-    <div class="section-heading">
-
-      <div>
-        <div class="section-title">
-          Today's Practice
-        </div>
-
-        <div class="section-subtitle">
-          Complete both sessions for your current day
-        </div>
-      </div>
-
-    </div>
-
 
     <div class="practice-grid">
 
-
-      <!-- MORNING -->
-
-      <article class="practice-card morning">
-
-        <div class="practice-top">
-
-          <div>
-            <div class="practice-icon">☀️</div>
-
-            <div class="practice-name">
-              Morning
-            </div>
-
-            <div
-              id="morningStatus"
-              class="practice-count">
-              0 / 17 completed
-            </div>
+      <div class="practice-card">
+        <div class="practice-head">
+          <div class="practice-name">
+            <div class="time-dot">☀</div>
+            <span id="morningName">Morning</span>
           </div>
-
+          <div class="counter"><span id="morningCount">0</span> / 3</div>
         </div>
+        <div class="practice-goal" id="morningText">
+          Write or repeat your abundance affirmation 3 times.
+        </div>
+        <div class="counter-controls">
+          <button class="counter-btn minus" onclick="changePractice('morning',-1)">−</button>
+          <button class="counter-btn plus" onclick="changePractice('morning',1)">+ Add Practice</button>
+        </div>
+      </div>
 
-        <div class="mini-track">
-          <div
-            id="morningProgress"
-            class="mini-fill">
+      <div class="practice-card">
+        <div class="practice-head">
+          <div class="practice-name">
+            <div class="time-dot">☀</div>
+            <span id="afternoonName">Afternoon</span>
           </div>
+          <div class="counter"><span id="afternoonCount">0</span> / 6</div>
         </div>
-
-        <div class="practice-status">
-          Start your day with abundance
+        <div class="practice-goal" id="afternoonText">
+          Pause, appreciate and reinforce your abundance intention 6 times.
         </div>
+        <div class="counter-controls">
+          <button class="counter-btn minus" onclick="changePractice('afternoon',-1)">−</button>
+          <button class="counter-btn plus" onclick="changePractice('afternoon',1)">+ Add Practice</button>
+        </div>
+      </div>
 
-        <button
-          id="morningButton"
-          class="primary-btn"
-          type="button"
-          onclick="openSession('morning')">
-          Start
-        </button>
-
-      </article>
-
-
-      <!-- NIGHT -->
-
-      <article class="practice-card night">
-
-        <div class="practice-top">
-
-          <div>
-            <div class="practice-icon">🌙</div>
-
-            <div class="practice-name">
-              Night
-            </div>
-
-            <div
-              id="nightStatus"
-              class="practice-count">
-              0 / 17 completed
-            </div>
+      <div class="practice-card">
+        <div class="practice-head">
+          <div class="practice-name">
+            <div class="time-dot">☾</div>
+            <span id="eveningName">Evening</span>
           </div>
-
+          <div class="counter"><span id="eveningCount">0</span> / 9</div>
         </div>
-
-        <div class="mini-track">
-          <div
-            id="nightProgress"
-            class="mini-fill">
-          </div>
+        <div class="practice-goal" id="eveningText">
+          Reflect on gratitude and your desired future 9 times.
         </div>
-
-        <div class="practice-status">
-          Close your day with gratitude
-        </div>
-
-        <button
-          id="nightButton"
-          class="primary-btn"
-          type="button"
-          onclick="openSession('night')">
-          Start
-        </button>
-
-      </article>
-
-    </div>
-
-  </section>
-
-
-  <!-- QUICK ACTIONS -->
-
-  <section class="section">
-
-    <div class="section-heading">
-
-      <div>
-        <div class="section-title">
-          Quick Actions
-        </div>
-
-        <div class="section-subtitle">
-          Keep your daily journey moving
+        <div class="counter-controls">
+          <button class="counter-btn minus" onclick="changePractice('evening',-1)">−</button>
+          <button class="counter-btn plus" onclick="changePractice('evening',1)">+ Add Practice</button>
         </div>
       </div>
 
     </div>
+  </div>
 
-
-    <div class="quick-grid">
-
-      <button
-        class="quick-btn"
-        type="button"
-        onclick="openSession('morning')">
-        <span>☀️</span>
-        Morning
-      </button>
-
-      <button
-        class="quick-btn"
-        type="button"
-        onclick="openSession('night')">
-        <span>🌙</span>
-        Night
-      </button>
-
-      <button
-        class="quick-btn"
-        type="button"
-        onclick="document.getElementById('journalSection').scrollIntoView({behavior:'smooth'})">
-        <span>✍️</span>
-        Journal
-      </button>
-
-      <button
-        class="quick-btn"
-        type="button"
-        onclick="document.getElementById('gratitudeSection').scrollIntoView({behavior:'smooth'})">
-        <span>🙏</span>
-        Gratitude
-      </button>
-
+  <div class="complete-card">
+    <div class="section-title">
+      <h2 id="completeTitle">Daily Reflection</h2>
+      <span id="completionHint">Complete all practices</span>
     </div>
-
-  </section>
-
-
-  <!-- 21 DAY JOURNEY -->
-
-  <section class="section">
-
-    <div class="section-heading">
-
-      <div>
-        <div class="section-title">
-          21-Day Journey
-        </div>
-
-        <div class="section-subtitle">
-          Track your progress day by day
-        </div>
-      </div>
-
-    </div>
-
-
-    <div class="journey-card">
-
-      <div
-        id="daysGrid"
-        class="days-grid">
-      </div>
-
-    </div>
-
-  </section>
-
-
-  <!-- MINDSET -->
-
-  <section class="section">
-
-    <div class="section-heading">
-
-      <div>
-        <div class="section-title">
-          Daily Mindset
-        </div>
-
-        <div class="section-subtitle">
-          Set your intention and take one meaningful action
-        </div>
-      </div>
-
-    </div>
-
-
-    <div class="mindset-card">
-
-      <div class="mindset-label">
-        CURRENT DAY
-      </div>
-
-      <div class="mindset-row">
-
-        <div class="mindset-box">
-          <h4>🎯 Daily Intention</h4>
-
-          <p id="dashboardIntention">
-            No intention added yet
-          </p>
-        </div>
-
-        <div class="mindset-box">
-          <h4>⚡ Abundance Action</h4>
-
-          <p id="dashboardAction">
-            No action added yet
-          </p>
-        </div>
-
-      </div>
-
-    </div>
-
-  </section>
-
-
-  <!-- ACHIEVEMENTS -->
-
-  <section class="section">
-
-    <div class="section-heading">
-
-      <div>
-        <div class="section-title">
-          Achievements
-        </div>
-
-        <div class="section-subtitle">
-          Milestones from your journey
-        </div>
-      </div>
-
-    </div>
-
-
-    <div class="achievement-grid">
-
-      <div
-        id="achievementStarted"
-        class="achievement locked">
-
-        <div class="achievement-icon">
-          🏁
-        </div>
-
-        <div class="achievement-title">
-          Journey Started
-        </div>
-
-        <div class="achievement-status">
-          Locked
-        </div>
-
-      </div>
-
-
-      <div
-        id="achievement3"
-        class="achievement locked">
-
-        <div class="achievement-icon">
-          🔥
-        </div>
-
-        <div class="achievement-title">
-          3 Day Streak
-        </div>
-
-        <div class="achievement-status">
-          Locked
-        </div>
-
-      </div>
-
-
-      <div
-        id="achievement7"
-        class="achievement locked">
-
-        <div class="achievement-icon">
-          ⭐
-        </div>
-
-        <div class="achievement-title">
-          7 Days Complete
-        </div>
-
-        <div class="achievement-status">
-          Locked
-        </div>
-
-      </div>
-
-
-      <div
-        id="achievement21"
-        class="achievement locked">
-
-        <div class="achievement-icon">
-          🏆
-        </div>
-
-        <div class="achievement-title">
-          21 Days Complete
-        </div>
-
-        <div class="achievement-status">
-          Locked
-        </div>
-
-      </div>
-
-    </div>
-
-  </section>
-
-
-  <!-- JOURNAL -->
-
-  <section
-    id="journalSection"
-    class="section">
-
-    <div class="section-heading">
-
-      <div>
-        <div class="section-title">
-          Daily Journal
-        </div>
-
-        <div class="section-subtitle">
-          Write for your current day
-        </div>
-      </div>
-
-    </div>
-
-
-    <div class="form-card">
-
-      <div class="form-group">
-
-        <label
-          class="form-label"
-          for="intentionInput">
-          🎯 Daily Intention
-        </label>
-
-        <textarea
-          id="intentionInput"
-          placeholder="What do you want to focus on today?"
-          oninput="saveJournal()"></textarea>
-
-      </div>
-
-
-      <div class="form-group">
-
-        <label
-          class="form-label"
-          for="actionInput">
-          ⚡ Abundance Action
-        </label>
-
-        <textarea
-          id="actionInput"
-          placeholder="What meaningful action will you take today?"
-          oninput="saveJournal()"></textarea>
-
-      </div>
-
-
-      <div
-        id="journalSaveStatus"
-        class="save-status">
-        ✓ Auto saved
-      </div>
-
-    </div>
-
-  </section>
-
-
-  <!-- GRATITUDE -->
-
-  <section
-    id="gratitudeSection"
-    class="section">
-
-    <div class="section-heading">
-
-      <div>
-        <div class="section-title">
-          Gratitude
-        </div>
-
-        <div class="section-subtitle">
-          Write three things you are grateful for
-        </div>
-      </div>
-
-    </div>
-
-
-    <div class="form-card">
-
-      <div class="gratitude-grid">
-
-        <div class="form-group">
-
-          <label
-            class="form-label"
-            for="gratitude1">
-            01
-          </label>
-
-          <textarea
-            id="gratitude1"
-            placeholder="I am grateful for..."
-            oninput="saveJournal()"></textarea>
-
-        </div>
-
-
-        <div class="form-group">
-
-          <label
-            class="form-label"
-            for="gratitude2">
-            02
-          </label>
-
-          <textarea
-            id="gratitude2"
-            placeholder="I am grateful for..."
-            oninput="saveJournal()"></textarea>
-
-        </div>
-
-
-        <div class="form-group">
-
-          <label
-            class="form-label"
-            for="gratitude3">
-            03
-          </label>
-
-          <textarea
-            id="gratitude3"
-            placeholder="I am grateful for..."
-            oninput="saveJournal()"></textarea>
-
-        </div>
-
-      </div>
-
-    </div>
-
-  </section>
-
-
-  <!-- REFLECTION -->
-
-  <section class="section">
-
-    <div class="section-heading">
-
-      <div>
-        <div class="section-title">
-          Reflection
-        </div>
-
-        <div class="section-subtitle">
-          Reflect on your current day
-        </div>
-      </div>
-
-    </div>
-
-
-    <div class="form-card">
-
-      <div class="form-group">
-
-        <label
-          class="form-label"
-          for="reflectionInput">
-          💭 Today's Reflection
-        </label>
-
-        <textarea
-          id="reflectionInput"
-          placeholder="How did today's practice make you feel?"
-          oninput="saveJournal()"></textarea>
-
-      </div>
-
-    </div>
-
-  </section>
-
-</section>
-
-
-<!-- =====================================================
-     SESSION SCREEN
-===================================================== -->
-
-<section
-  id="sessionScreen"
-  class="hidden">
-
-  <div class="session-shell">
-
-    <div class="session-header">
-
-      <button
-        class="back-btn"
-        type="button"
-        onclick="goHome()">
-        ←
-      </button>
-
-      <div class="session-heading">
-
-        <strong id="sessionDay">
-          Day 1
-        </strong>
-
-        <span id="sessionType">
-          ☀️ Morning
-        </span>
-
-      </div>
-
-      <div
-        id="sessionCounter"
-        class="session-counter">
-        1 / 17
-      </div>
-
-    </div>
-
-
-    <div class="session-progress-wrap">
-
-      <div class="session-progress-track">
-
-        <div
-          id="sessionProgress"
-          class="session-progress-fill">
-        </div>
-
-      </div>
-
-      <div
-        id="sessionProgressText"
-        class="session-progress-text">
-        0 / 17 completed
-      </div>
-
-    </div>
-
-
-    <div class="affirmation-card">
-
-      <div
-        id="affirmationNumber"
-        class="affirmation-number">
-        1
-      </div>
-
-      <div
-        id="affirmationText"
-        class="affirmation-text">
-        —
-      </div>
-
-      <div class="practice-tip">
-        Read slowly, focus on the meaning, and practice with awareness
-      </div>
-
-      <button
-        id="doneButton"
-        class="done-btn"
-        type="button"
-        onclick="markDone()">
-        ✓ ဖတ်ပြီးပါပြီ
-      </button>
-
-    </div>
-
-
-    <div class="session-nav">
-
-      <button
-        id="previousButton"
-        class="secondary-btn"
-        type="button"
-        onclick="previousAffirmation()">
-        ← Previous
-      </button>
-
-      <button
-        id="nextButton"
-        class="secondary-btn"
-        type="button"
-        onclick="nextAffirmation()">
-        Next →
-      </button>
-
-    </div>
-
-
-    <button
-      class="primary-btn"
-      type="button"
-      onclick="finishSession()">
-      Complete Session
+    <p id="reflectionPreview" style="color:var(--muted);font-size:12px;line-height:1.5;margin:0 0 12px">
+      Take a moment to write what you are grateful for today.
+    </p>
+    <button class="primary" id="completeBtn" onclick="completeDay()" disabled>
+      Complete Day
     </button>
-
   </div>
 
 </section>
 
+<!-- GOALS -->
+<section class="page" id="goalsPage">
+  <div class="section-title">
+    <h2 id="goalsTitle">Choose Your Abundance Goal</h2>
+    <span id="goalSelectedText">Not selected</span>
+  </div>
 
-<!-- =====================================================
-     COMPLETE SCREEN
-===================================================== -->
+  <div class="goal-grid" id="goalGrid"></div>
 
-<section
-  id="completeScreen"
-  class="hidden">
+  <div class="card" style="margin-top:12px">
+    <h3 id="customGoalTitle">Custom Goal</h3>
+    <p id="customGoalDesc">Create your own intention for the 21-day journey.</p>
 
-  <div class="complete-shell">
+    <div class="form-group">
+      <label id="customGoalLabel">Your goal</label>
+      <input id="customGoalInput" placeholder="Example: Grow my business with confidence">
+    </div>
 
-    <div class="complete-card">
-
-      <div class="trophy">
-        🏆
-      </div>
-
-      <h2
-        id="completeTitle"
-        class="complete-title">
-        Practice Complete
-      </h2>
-
-      <p
-        id="completeMessage"
-        class="complete-message">
-        Keep going
-      </p>
-
-
-      <div class="complete-stats">
-
-        <div class="complete-stat">
-          <strong id="completeDayNumber">
-            Day 1
-          </strong>
-          <span>Current Day</span>
-        </div>
-
-        <div class="complete-stat">
-          <strong id="completeStreak">
-            0
-          </strong>
-          <span>Streak</span>
-        </div>
-
-      </div>
-
-
-      <button
-        class="primary-btn"
-        type="button"
-        onclick="continueAfterComplete()">
-        Continue
+    <div class="save-row">
+      <button class="primary" style="width:auto" onclick="saveCustomGoal()" id="saveGoalBtn">
+        Save Goal
       </button>
+    </div>
+  </div>
+</section>
 
-      <button
-        class="secondary-btn"
-        style="width:100%;margin-top:10px"
-        type="button"
-        onclick="goHome()">
-        Back to Dashboard
+<!-- HISTORY -->
+<section class="page" id="historyPage">
+  <div class="section-title">
+    <h2 id="historyTitle">21-Day History</h2>
+    <span id="historySummary">0 / 21 complete</span>
+  </div>
+
+  <div class="card">
+    <div class="days-grid" id="daysGrid"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">
+      <h2 id="historyDetails">Daily Records</h2>
+    </div>
+    <div class="history-list" id="historyList"></div>
+  </div>
+</section>
+
+<!-- JOURNAL -->
+<section class="page" id="journalPage">
+  <div class="section-title">
+    <h2 id="journalTitle">Daily Journal</h2>
+    <span id="journalDate"></span>
+  </div>
+
+  <div class="journal-tabs">
+    <button class="tab active" id="gratitudeTab" onclick="switchJournal('gratitude')">Gratitude</button>
+    <button class="tab" id="journalTab" onclick="switchJournal('journal')">Journal</button>
+    <button class="tab" id="intentionTab" onclick="switchJournal('intention')">Intention</button>
+  </div>
+
+  <div class="card">
+    <textarea id="journalText" placeholder="Write here..."></textarea>
+
+    <div class="save-row">
+      <button class="primary" style="width:auto" onclick="saveJournal()" id="saveJournalBtn">
+        Save
       </button>
+    </div>
+  </div>
 
+  <div class="section">
+    <div class="card">
+      <h3 id="reflectionTitle">Today's Reflection</h3>
+      <p id="reflectionText">Your saved thoughts for today will appear here.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SETTINGS -->
+<section class="page" id="settingsPage">
+  <div class="section-title">
+    <h2 id="settingsTitle">Settings</h2>
+  </div>
+
+  <div class="card">
+
+    <div class="settings-row">
+      <div class="settings-label">
+        <strong id="languageTitle">Language</strong>
+        <span id="languageDesc">Choose your preferred language</span>
+      </div>
+      <select id="languageSelect" onchange="setLanguage(this.value)" style="width:auto">
+        <option value="en">English</option>
+        <option value="my">မြန်မာ</option>
+      </select>
+    </div>
+
+    <div class="settings-row">
+      <div class="settings-label">
+        <strong id="journeySettingsTitle">Journey</strong>
+        <span id="journeySettingsDesc">Your current 21-day journey</span>
+      </div>
+      <button class="secondary" onclick="confirmReset()" id="resetBtn">Reset</button>
+    </div>
+
+    <div class="settings-row">
+      <div class="settings-label">
+        <strong id="dataTitle">Your Data</strong>
+        <span id="dataDesc">Export or import your journey data</span>
+      </div>
+      <div style="display:flex;gap:7px">
+        <button class="secondary" onclick="exportData()" id="exportBtn">Export</button>
+        <button class="secondary" onclick="document.getElementById('importFile').click()" id="importBtn">Import</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+      </div>
     </div>
 
   </div>
 
+  <div class="card" style="margin-top:12px">
+    <h3>21-Day Abundance</h3>
+    <p id="aboutText">
+      A simple daily practice for consistency, gratitude and intentional growth.
+      Your data is stored locally on this device.
+    </p>
+  </div>
 </section>
 
+</div>
 
-<!-- =====================================================
-     CERTIFICATE SCREEN
-===================================================== -->
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="showPage('home')" id="navHome">
+    <span class="nav-icon">⌂</span>Home
+  </button>
+  <button class="nav-btn" onclick="showPage('goals')" id="navGoals">
+    <span class="nav-icon">✦</span>Goals
+  </button>
+  <button class="nav-btn" onclick="showPage('history')" id="navHistory">
+    <span class="nav-icon">◷</span>History
+  </button>
+  <button class="nav-btn" onclick="showPage('journal')" id="navJournal">
+    <span class="nav-icon">✎</span>Journal
+  </button>
+  <button class="nav-btn" onclick="showPage('settings')" id="navSettings">
+    <span class="nav-icon">⚙</span>Settings
+  </button>
+</nav>
 
-<section
-  id="certificateScreen"
-  class="hidden">
-
-  <div class="certificate-shell">
-
-    <div class="certificate-card">
-
-      <div class="certificate-label">
-        COMPLETION CERTIFICATE
-      </div>
-
-      <h2 class="certificate-title">
-        21-Day Abundance
-      </h2>
-
-      <div class="certificate-name">
-        Aung Zar Ni Win
-      </div>
-
-      <div
-        id="certificateDate"
-        class="certificate-date">
-        Completed —
-      </div>
-
-
-      <div class="badges">
-
-        <div class="badge">
-          ✓ 21 Days
-        </div>
-
-        <div class="badge">
-          ☀️ Morning
-        </div>
-
-        <div class="badge">
-          🌙 Night
-        </div>
-
-      </div>
-
-
-      <button
-        class="primary-btn"
-        type="button"
-        onclick="goHome()">
-        Return to Dashboard
-      </button>
-
+<!-- SETTINGS MODAL -->
+<div class="modal" id="settingsModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2 id="quickSettingsTitle">Quick Settings</h2>
+      <button class="close" onclick="closeSettings()">×</button>
     </div>
 
+    <div class="card">
+      <div class="settings-row">
+        <div class="settings-label">
+          <strong id="quickLanguageTitle">Language</strong>
+          <span id="quickLanguageDesc">Switch language</span>
+        </div>
+        <select id="quickLanguage" onchange="setLanguage(this.value)" style="width:auto">
+          <option value="en">English</option>
+          <option value="my">မြန်မာ</option>
+        </select>
+      </div>
+    </div>
   </div>
+</div>
 
-</section>
-
-
-</main>
-
-
-<script src="app.js"></script>
+<div class="toast" id="toast"></div>
 
 <script>
 /* =========================================================
-   DASHBOARD ENHANCEMENT
+   21-DAY ABUNDANCE V2
+   Single File • Local Storage • English / Myanmar
 ========================================================= */
 
-function updateDashboardExtras(){
+const STORAGE_KEY = "21_day_abundance_v2";
 
-  if(typeof appData === "undefined"){
-    return;
+const goalData = [
+  {
+    id:"money",
+    icon:"💰",
+    en:"Money",
+    my:"ငွေကြေး",
+    enDesc:"Build a healthier relationship with money",
+    myDesc:"ငွေကြေးနဲ့ ပိုမိုကောင်းမွန်တဲ့ ဆက်ဆံရေးတည်ဆောက်ရန်"
+  },
+  {
+    id:"business",
+    icon:"📈",
+    en:"Business",
+    my:"စီးပွားရေး",
+    enDesc:"Grow your business with intention",
+    myDesc:"စီးပွားရေးတိုးတက်မှုကို အာရုံစိုက်ရန်"
+  },
+  {
+    id:"career",
+    icon:"🎯",
+    en:"Career",
+    my:"အလုပ်အကိုင်",
+    enDesc:"Create progress and new opportunities",
+    myDesc:"အလုပ်အကိုင်တိုးတက်မှုနဲ့ အခွင့်အလမ်းများဖန်တီးရန်"
+  },
+  {
+    id:"family",
+    icon:"❤️",
+    en:"Family",
+    my:"မိသားစု",
+    enDesc:"Create more meaningful relationships",
+    myDesc:"အဓိပ္ပာယ်ရှိတဲ့ ဆက်ဆံရေးများတည်ဆောက်ရန်"
+  },
+  {
+    id:"health",
+    icon:"🌿",
+    en:"Health",
+    my:"ကျန်းမာရေး",
+    enDesc:"Support a balanced and healthy life",
+    myDesc:"မျှတပြီး ကျန်းမာတဲ့ဘဝကို တည်ဆောက်ရန်"
+  },
+  {
+    id:"growth",
+    icon:"🌱",
+    en:"Personal Growth",
+    my:"ကိုယ်ပိုင်တိုးတက်မှု",
+    enDesc:"Become more intentional every day",
+    myDesc:"နေ့စဉ် ကိုယ်ပိုင်တိုးတက်မှုကို အာရုံစိုက်ရန်"
   }
+];
 
-  const day =
-    Number(appData.currentDay) || 1;
+const quotes = [
+  ["Stay consistent. Stay grateful. Keep growing.","တစ်သမတ်တည်း ဆက်လုပ်ပါ။ ကျေးဇူးတင်ပါ။ ဆက်လက်တိုးတက်ပါ"],
+  ["Small actions create meaningful change.","သေးငယ်တဲ့ လုပ်ဆောင်ချက်တွေက အဓိပ္ပာယ်ရှိတဲ့ ပြောင်းလဲမှုကို ဖန်တီးပေးပါတယ်"],
+  ["Focus on what you can create today.","ဒီနေ့ သင်ဖန်တီးနိုင်တာကို အာရုံစိုက်ပါ"],
+  ["Gratitude turns attention into appreciation.","ကျေးဇူးတင်ခြင်းက အာရုံစိုက်မှုကို တန်ဖိုးထားမှုအဖြစ် ပြောင်းလဲပေးပါတယ်"],
+  ["Your daily practice builds your future.","နေ့စဉ်လေ့ကျင့်မှုက သင့်အနာဂတ်ကို တည်ဆောက်ပေးပါတယ်"],
+  ["Progress grows from consistency.","တိုးတက်မှုဟာ တစ်သမတ်တည်းလုပ်ဆောင်မှုကနေ ဖြစ်ပေါ်လာပါတယ်"],
+  ["Give your attention to possibilities.","ဖြစ်နိုင်ခြေတွေကို သင့်အာရုံစိုက်မှု ပေးပါ"],
+  ["One intentional day at a time.","ရည်ရွယ်ချက်ရှိတဲ့ တစ်နေ့ချင်းစီကို ဖြတ်သန်းပါ"],
+  ["Appreciate what you have while creating what you want.","ရှိပြီးသားအရာတွေကို တန်ဖိုးထားရင်း လိုချင်တာတွေကို ဖန်တီးပါ"],
+  ["Clarity creates better action.","ရှင်းလင်းမှုက ပိုကောင်းတဲ့ လုပ်ဆောင်ချက်ကို ဖန်တီးပေးပါတယ်"],
+  ["Your attention shapes your experience.","သင့်အာရုံစိုက်မှုက သင့်အတွေ့အကြုံကို ပုံဖော်ပေးပါတယ်"],
+  ["Choose progress over perfection.","ပြီးပြည့်စုံမှုထက် တိုးတက်မှုကို ရွေးချယ်ပါ"],
+  ["Make room for new possibilities.","ဖြစ်နိုင်ခြေအသစ်တွေအတွက် နေရာဖန်တီးပါ"],
+  ["Consistency compounds.","တစ်သမတ်တည်းလုပ်ဆောင်မှုက အချိန်နဲ့အမျှ ပိုမိုကြီးထွားလာပါတယ်"],
+  ["Notice the good that is already present.","ရှိနေပြီးသားကောင်းမွန်တဲ့အရာတွေကို သတိပြုပါ"],
+  ["A clear intention changes the quality of your day.","ရှင်းလင်းတဲ့ ရည်ရွယ်ချက်က သင့်နေ့ရဲ့ အရည်အသွေးကို ပြောင်းလဲပေးပါတယ်"],
+  ["You can begin again today.","ဒီနေ့ကနေ ပြန်စနိုင်ပါတယ်"],
+  ["Create before you consume.","လက်ခံသုံးစွဲခြင်းမတိုင်ခင် ဖန်တီးပါ"],
+  ["Protect your energy and direct it wisely.","သင့်စွမ်းအင်ကို ထိန်းသိမ်းပြီး မှန်ကန်စွာ အသုံးချပါ"],
+  ["Gratitude and action can move together.","ကျေးဇူးတင်ခြင်းနဲ့ လုပ်ဆောင်ခြင်းကို အတူတကွ လုပ်ဆောင်နိုင်ပါတယ်"],
+  ["Finish what you started.","စတင်ထားတာကို ပြီးအောင်လုပ်ပါ"]
+];
 
-  const dayNumber =
-    document.getElementById("heroDayNumber");
-
-  const dayNumber2 =
-    document.getElementById("heroDayNumber2");
-
-  if(dayNumber){
-    dayNumber.textContent = day;
+const i18n = {
+  en:{
+    brandSub:"Your Journey • Your Growth",
+    journeyLabel:"YOUR ABUNDANCE JOURNEY",
+    dayProgress:"days completed",
+    overall:"Overall Progress",
+    streak:"Current Streak",
+    practices:"Practices Done",
+    todayProgress:"Today's Progress",
+    practiceTitle:"Today's Practices",
+    noGoal:"No goal selected",
+    morning:"Morning",
+    afternoon:"Afternoon",
+    evening:"Evening",
+    morningText:"Write or repeat your abundance affirmation 3 times.",
+    afternoonText:"Pause, appreciate and reinforce your abundance intention 6 times.",
+    eveningText:"Reflect on gratitude and your desired future 9 times.",
+    add:"+ Add Practice",
+    reflection:"Daily Reflection",
+    completeHint:"Complete all practices",
+    complete:"Complete Day",
+    completed:"Completed",
+    continue:"Continue Journey",
+    goals:"Choose Your Abundance Goal",
+    notSelected:"Not selected",
+    customGoal:"Custom Goal",
+    customDesc:"Create your own intention for the 21-day journey.",
+    yourGoal:"Your goal",
+    saveGoal:"Save Goal",
+    history:"21-Day History",
+    dailyRecords:"Daily Records",
+    completeOf:"complete",
+    journal:"Daily Journal",
+    gratitude:"Gratitude",
+    journalTab:"Journal",
+    intention:"Intention",
+    save:"Save",
+    reflectionTitle:"Today's Reflection",
+    reflectionText:"Your saved thoughts for today will appear here.",
+    settings:"Settings",
+    language:"Language",
+    languageDesc:"Choose your preferred language",
+    journey:"Journey",
+    journeyDesc:"Your current 21-day journey",
+    reset:"Reset",
+    data:"Your Data",
+    dataDesc:"Export or import your journey data",
+    export:"Export",
+    import:"Import",
+    quickSettings:"Quick Settings",
+    switchLanguage:"Switch language",
+    about:"A simple daily practice for consistency, gratitude and intentional growth. Your data is stored locally on this device.",
+    saved:"Saved successfully",
+    goalSaved:"Goal saved",
+    dayComplete:"Day completed",
+    maxDay:"You have completed the 21-day journey",
+    resetConfirm:"Reset your entire journey? This cannot be undone.",
+    resetDone:"Journey reset",
+    selectGoal:"Please select a goal first",
+    allDone:"All practices completed",
+    notComplete:"Complete all 18 practices first"
+  },
+  my:{
+    brandSub:"သင့်ခရီးစဉ် • သင့်တိုးတက်မှု",
+    journeyLabel:"သင့် ABUNDANCE ခရီးစဉ်",
+    dayProgress:"ပြီးမြောက်သောရက်များ",
+    overall:"စုစုပေါင်းတိုးတက်မှု",
+    streak:"လက်ရှိ Streak",
+    practices:"ပြီးမြောက်သော Practice",
+    todayProgress:"ယနေ့တိုးတက်မှု",
+    practiceTitle:"ယနေ့ Practice များ",
+    noGoal:"Goal မရွေးရသေးပါ",
+    morning:"မနက်ပိုင်း",
+    afternoon:"နေ့လယ်ပိုင်း",
+    evening:"ညပိုင်း",
+    morningText:"သင့် Abundance Affirmation ကို ၃ ကြိမ် ရေးပါ သို့မဟုတ် ပြန်ပြောပါ",
+    afternoonText:"ခဏရပ်ပြီး ကျေးဇူးတင်မှုနဲ့ သင့်ရည်ရွယ်ချက်ကို ၆ ကြိမ် အာရုံစိုက်ပါ",
+    eveningText:"ယနေ့အတွက် ကျေးဇူးတင်မှုနဲ့ သင့်အနာဂတ်ရည်ရွယ်ချက်ကို ၉ ကြိမ် ပြန်လည်သုံးသပ်ပါ",
+    add:"+ Practice ထည့်မယ်",
+    reflection:"နေ့စဉ်ပြန်လည်သုံးသပ်မှု",
+    completeHint:"Practice အားလုံးပြီးအောင်လုပ်ပါ",
+    complete:"နေ့ကို ပြီးမြောက်အောင်လုပ်မယ်",
+    completed:"ပြီးမြောက်ပြီ",
+    continue:"ဆက်လက်လုပ်ဆောင်မယ်",
+    goals:"သင့် Abundance Goal ကို ရွေးပါ",
+    notSelected:"မရွေးရသေးပါ",
+    customGoal:"ကိုယ်ပိုင် Goal",
+    customDesc:"၂၁ ရက်ခရီးစဉ်အတွက် ကိုယ်ပိုင်ရည်ရွယ်ချက် ဖန်တီးပါ",
+    yourGoal:"သင့် Goal",
+    saveGoal:"Goal သိမ်းမယ်",
+    history:"၂၁ ရက်မှတ်တမ်း",
+    dailyRecords:"နေ့စဉ်မှတ်တမ်းများ",
+    completeOf:"ပြီးမြောက်",
+    journal:"နေ့စဉ် Journal",
+    gratitude:"ကျေးဇူးတင်မှု",
+    journalTab:"Journal",
+    intention:"ရည်ရွယ်ချက်",
+    save:"သိမ်းမယ်",
+    reflectionTitle:"ယနေ့ပြန်လည်သုံးသပ်မှု",
+    reflectionText:"သိမ်းထားတဲ့ အတွေးအမြင်တွေ ဒီနေရာမှာ ပေါ်လာပါမယ်",
+    settings:"Settings",
+    language:"ဘာသာစကား",
+    languageDesc:"နှစ်သက်ရာဘာသာစကားကို ရွေးပါ",
+    journey:"Journey",
+    journeyDesc:"သင့်လက်ရှိ ၂၁ ရက်ခရီးစဉ်",
+    reset:"Reset",
+    data:"သင့် Data",
+    dataDesc:"Journey Data ကို Export / Import လုပ်နိုင်ပါတယ်",
+    export:"Export",
+    import:"Import",
+    quickSettings:"Quick Settings",
+    switchLanguage:"ဘာသာစကားပြောင်းမယ်",
+    about:"တစ်သမတ်တည်းလုပ်ဆောင်မှု၊ ကျေးဇူးတင်မှုနဲ့ ရည်ရွယ်ချက်ရှိတဲ့ တိုးတက်မှုအတွက် နေ့စဉ်လေ့ကျင့်မှုတစ်ခု ဖြစ်ပါတယ်။ Data တွေကို ဒီစက်ထဲမှာပဲ သိမ်းထားပါတယ်",
+    saved:"အောင်မြင်စွာ သိမ်းပြီးပါပြီ",
+    goalSaved:"Goal သိမ်းပြီးပါပြီ",
+    dayComplete:"နေ့ကို ပြီးမြောက်ပါပြီ",
+    maxDay:"၂၁ ရက် Journey ကို ပြီးမြောက်ပါပြီ",
+    resetConfirm:"Journey တစ်ခုလုံးကို Reset လုပ်မှာ သေချာပါသလား။ ပြန်ပြင်လို့မရတော့ပါ",
+    resetDone:"Journey Reset ပြီးပါပြီ",
+    selectGoal:"Goal တစ်ခု အရင်ရွေးပါ",
+    allDone:"Practice အားလုံးပြီးပါပြီ",
+    notComplete:"Practice ၁၈ ခုလုံးကို ပြီးအောင်လုပ်ပါ"
   }
+};
 
-  if(dayNumber2){
-    dayNumber2.textContent = day;
-  }
-
-
-  /* =========================
-     JOURNAL PREVIEW
-  ========================= */
-
-  if(typeof getJournal === "function"){
-
-    const journal =
-      getJournal(day);
-
-    const intention =
-      document.getElementById(
-        "dashboardIntention"
-      );
-
-    const action =
-      document.getElementById(
-        "dashboardAction"
-      );
-
-    if(intention){
-
-      intention.textContent =
-        journal.intention.trim()
-          ? journal.intention
-          : "No intention added yet";
-
-    }
-
-    if(action){
-
-      action.textContent =
-        journal.action.trim()
-          ? journal.action
-          : "No action added yet";
-
-    }
-
-  }
-
-
-  /* =========================
-     ACHIEVEMENTS
-  ========================= */
-
-  const overall =
-    typeof calculateOverallProgress === "function"
-      ? calculateOverallProgress()
-      : {completed:0};
-
-  const streak =
-    typeof calculateStreak === "function"
-      ? calculateStreak()
-      : 0;
-
-  const completedDays =
-    typeof countCompletedDays === "function"
-      ? countCompletedDays()
-      : 0;
-
-
-  setAchievement(
-    "achievementStarted",
-    overall.completed > 0
-  );
-
-  setAchievement(
-    "achievement3",
-    streak >= 3
-  );
-
-  setAchievement(
-    "achievement7",
-    completedDays >= 7
-  );
-
-  setAchievement(
-    "achievement21",
-    completedDays >= 21
-  );
-
+function defaultData(){
+  return {
+    version:2,
+    language:"en",
+    startDate:new Date().toISOString(),
+    currentDay:1,
+    selectedGoal:null,
+    customGoal:"",
+    days:{},
+    journals:{},
+  };
 }
 
+let data = loadData();
+let journalMode = "gratitude";
 
-function setAchievement(id,unlocked){
-
-  const card =
-    document.getElementById(id);
-
-  if(!card){
-    return;
+function loadData(){
+  try{
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if(!saved) return defaultData();
+    const parsed = JSON.parse(saved);
+    return Object.assign(defaultData(),parsed);
+  }catch(e){
+    return defaultData();
   }
+}
 
-  const status =
-    card.querySelector(
-      ".achievement-status"
-    );
+function saveData(){
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+}
 
-  if(unlocked){
+function t(key){
+  return i18n[data.language]?.[key] ?? i18n.en[key] ?? key;
+}
 
-    card.classList.remove("locked");
+function currentRecord(){
+  const day=data.currentDay;
+  if(!data.days[day]){
+    data.days[day]={
+      morning:0,
+      afternoon:0,
+      evening:0,
+      completed:false,
+      completedAt:null
+    };
+  }
+  return data.days[day];
+}
 
-    if(status){
-      status.textContent =
-        "✓ Unlocked";
-    }
+function getCompletedDays(){
+  return Object.values(data.days).filter(x=>x.completed).length;
+}
 
+function getPracticeTotal(){
+  return Object.values(data.days).reduce((sum,d)=>{
+    return sum + Math.min(d.morning||0,3)
+             + Math.min(d.afternoon||0,6)
+             + Math.min(d.evening||0,9);
+  },0);
+}
+
+function getTodayTotal(){
+  const d=currentRecord();
+  return Math.min(d.morning,3)+Math.min(d.afternoon,6)+Math.min(d.evening,9);
+}
+
+function getTodayPercent(){
+  return Math.round(getTodayTotal()/18*100);
+}
+
+function getOverallPercent(){
+  return Math.round(getCompletedDays()/21*100);
+}
+
+function getStreak(){
+  let streak=0;
+  for(let day=data.currentDay;day>=1;day--){
+    if(data.days[day]?.completed) streak++;
+    else break;
+  }
+  return streak;
+}
+
+function formatDate(){
+  const now=new Date();
+  return now.toLocaleDateString(
+    data.language==="my" ? "my-MM" : "en-US",
+    {weekday:"long",year:"numeric",month:"long",day:"numeric"}
+  );
+}
+
+function showPage(page){
+  const pages=["home","goals","history","journal","settings"];
+
+  pages.forEach(p=>{
+    const el=document.getElementById(p+"Page");
+    if(el) el.classList.toggle("active",p===page);
+  });
+
+  pages.forEach(p=>{
+    const nav=document.getElementById("nav"+capitalize(p));
+    if(nav) nav.classList.toggle("active",p===page);
+  });
+
+  if(page==="home") renderHome();
+  if(page==="goals") renderGoals();
+  if(page==="history") renderHistory();
+  if(page==="journal") renderJournal();
+  if(page==="settings") renderSettings();
+
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function capitalize(s){
+  return s.charAt(0).toUpperCase()+s.slice(1);
+}
+
+function renderHome(){
+  const d=currentRecord();
+
+  document.getElementById("dayTitle").textContent =
+    data.language==="my" ? `Day ${data.currentDay}` : `Day ${data.currentDay}`;
+
+  document.getElementById("currentDay").textContent=data.currentDay;
+  document.getElementById("dailyQuote").textContent=quotes[data.currentDay-1]?.[data.language==="my"?1:0] || quotes[0][0];
+
+  document.getElementById("todayDate").textContent=formatDate();
+
+  document.getElementById("overallPercent").textContent=getOverallPercent()+"%";
+  document.getElementById("overallBar").style.width=getOverallPercent()+"%";
+
+  document.getElementById("streakStat").textContent=getStreak();
+  document.getElementById("practiceStat").textContent=getPracticeTotal();
+  document.getElementById("todayPercent").textContent=getTodayPercent()+"%";
+
+  document.getElementById("morningCount").textContent=Math.min(d.morning,3);
+  document.getElementById("afternoonCount").textContent=Math.min(d.afternoon,6);
+  document.getElementById("eveningCount").textContent=Math.min(d.evening,9);
+
+  const goal = getSelectedGoal();
+  document.getElementById("goalMini").textContent =
+    goal ? `${goal.icon} ${goal[data.language==="my"?"my":"en"]}` : t("noGoal");
+
+  const ready =
+    d.morning>=3 &&
+    d.afternoon>=6 &&
+    d.evening>=9;
+
+  const btn=document.getElementById("completeBtn");
+  btn.disabled=!ready || d.completed;
+
+  if(d.completed){
+    btn.textContent=t("completed")+" ✓";
+  }else if(ready){
+    btn.textContent=t("complete");
   }else{
-
-    card.classList.add("locked");
-
-    if(status){
-      status.textContent =
-        "Locked";
-    }
-
+    btn.textContent=t("notComplete");
   }
 
+  document.getElementById("reflectionPreview").textContent =
+    getJournalText("gratitude") || t("reflectionText");
 }
 
+function renderGoals(){
+  const grid=document.getElementById("goalGrid");
+  grid.innerHTML="";
 
-/* =========================================================
-   KEEP DASHBOARD IN SYNC
-========================================================= */
+  goalData.forEach(g=>{
+    const btn=document.createElement("button");
+    btn.className="goal"+(data.selectedGoal===g.id?" selected":"");
+    btn.onclick=()=>selectGoal(g.id);
 
-const originalUpdateHome =
-  window.updateHome;
+    btn.innerHTML=`
+      <div class="goal-icon">${g.icon}</div>
+      <div class="goal-name">${g[data.language==="my"?"my":"en"]}</div>
+      <div class="goal-desc">${g[data.language==="my"?"myDesc":"enDesc"]}</div>
+    `;
 
-if(typeof originalUpdateHome === "function"){
+    grid.appendChild(btn);
+  });
 
-  window.updateHome =
-    function(){
+  document.getElementById("goalSelectedText").textContent =
+    getSelectedGoal()
+      ? getSelectedGoal()[data.language==="my"?"my":"en"]
+      : t("notSelected");
 
-      originalUpdateHome.apply(
-        this,
-        arguments
-      );
+  document.getElementById("customGoalInput").value=data.customGoal||"";
+}
 
-      updateDashboardExtras();
+function getSelectedGoal(){
+  return goalData.find(g=>g.id===data.selectedGoal) || null;
+}
 
+function selectGoal(id){
+  data.selectedGoal=id;
+  saveData();
+  renderGoals();
+  renderHome();
+  toast(t("goalSaved"));
+}
+
+function saveCustomGoal(){
+  const value=document.getElementById("customGoalInput").value.trim();
+
+  if(!value){
+    toast(t("selectGoal"));
+    return;
+  }
+
+  data.customGoal=value;
+  data.selectedGoal="custom";
+  saveData();
+
+  renderGoals();
+  renderHome();
+  toast(t("goalSaved"));
+}
+
+function changePractice(type,amount){
+  const d=currentRecord();
+  const limits={morning:3,afternoon:6,evening:9};
+
+  d[type]=Math.max(0,Math.min(limits[type],d[type]+amount));
+
+  saveData();
+  renderHome();
+}
+
+function completeDay(){
+  const d=currentRecord();
+
+  if(!data.selectedGoal && !data.customGoal){
+    toast(t("selectGoal"));
+    showPage("goals");
+    return;
+  }
+
+  if(d.morning<3 || d.afternoon<6 || d.evening<9){
+    toast(t("notComplete"));
+    return;
+  }
+
+  if(d.completed) return;
+
+  d.completed=true;
+  d.completedAt=new Date().toISOString();
+
+  saveData();
+
+  if(data.currentDay<21){
+    toast(t("dayComplete"));
+
+    setTimeout(()=>{
+      data.currentDay++;
+      saveData();
+      renderHome();
+    },700);
+  }else{
+    toast(t("maxDay"));
+    renderHome();
+  }
+
+  renderHistory();
+}
+
+function renderHistory(){
+  const completed=getCompletedDays();
+
+  document.getElementById("historySummary").textContent =
+    `${completed} / 21 ${t("completeOf")}`;
+
+  const grid=document.getElementById("daysGrid");
+  grid.innerHTML="";
+
+  for(let i=1;i<=21;i++){
+    const cell=document.createElement("div");
+
+    let cls="day-cell";
+    if(data.days[i]?.completed) cls+=" done";
+    if(i===data.currentDay) cls+=" current";
+
+    cell.className=cls;
+    cell.textContent=i;
+
+    cell.onclick=()=>{
+      data.currentDay=i;
+      saveData();
+      showPage("home");
     };
 
+    grid.appendChild(cell);
+  }
+
+  const list=document.getElementById("historyList");
+  list.innerHTML="";
+
+  for(let i=1;i<=21;i++){
+    const d=data.days[i];
+
+    const item=document.createElement("div");
+    item.className="history-item";
+
+    const percent=d
+      ? Math.round(
+          (
+            Math.min(d.morning||0,3)+
+            Math.min(d.afternoon||0,6)+
+            Math.min(d.evening||0,9)
+          )/18*100
+        )
+      : 0;
+
+    item.innerHTML=`
+      <div class="history-day">${i}</div>
+      <div class="history-info">
+        <strong>Day ${i}</strong>
+        <span>${percent}% practice progress</span>
+      </div>
+      <div class="status ${d?.completed?"done":"open"}">
+        ${d?.completed?"✓ "+t("completed"):percent+"%"}
+      </div>
+    `;
+
+    item.onclick=()=>{
+      data.currentDay=i;
+      saveData();
+      showPage("home");
+    };
+
+    list.appendChild(item);
+  }
 }
 
+function journalKey(day,mode){
+  return `${day}_${mode}`;
+}
 
-/* =========================================================
-   INITIAL DASHBOARD REFRESH
-========================================================= */
+function getJournalText(mode){
+  return data.journals[journalKey(data.currentDay,mode)] || "";
+}
 
-document.addEventListener(
-  "DOMContentLoaded",
-  function(){
+function switchJournal(mode){
+  journalMode=mode;
 
-    setTimeout(
-      updateDashboardExtras,
-      50
-    );
+  ["gratitude","journal","intention"].forEach(x=>{
+    const el=document.getElementById(x+"Tab");
+    if(el) el.classList.toggle("active",x===mode);
+  });
 
+  document.getElementById("journalText").value=getJournalText(mode);
+
+  const placeholders={
+    en:{
+      gratitude:"What are you grateful for today?",
+      journal:"Write about your day, thoughts or lessons.",
+      intention:"What is your intention for today?"
+    },
+    my:{
+      gratitude:"ဒီနေ့ ဘာတွေအတွက် ကျေးဇူးတင်ပါသလဲ",
+      journal:"ဒီနေ့အကြောင်း၊ သင့်အတွေးများ သို့မဟုတ် သင်ခန်းစာများကို ရေးပါ",
+      intention:"ဒီနေ့အတွက် သင့်ရည်ရွယ်ချက်က ဘာလဲ"
+    }
+  };
+
+  document.getElementById("journalText").placeholder=
+    placeholders[data.language][mode];
+}
+
+function saveJournal(){
+  data.journals[journalKey(data.currentDay,journalMode)] =
+    document.getElementById("journalText").value;
+
+  saveData();
+  renderHome();
+  renderJournal();
+  toast(t("saved"));
+}
+
+function renderJournal(){
+  document.getElementById("journalDate").textContent=formatDate();
+
+  document.getElementById("journalText").value=getJournalText(journalMode);
+
+  switchJournal(journalMode);
+
+  const all=[
+    ["Gratitude",getJournalText("gratitude")],
+    ["Journal",getJournalText("journal")],
+    ["Intention",getJournalText("intention")]
+  ];
+
+  document.getElementById("reflectionText").innerHTML=
+    all.map(x=>`
+      <div style="margin-top:10px">
+        <strong style="color:var(--gold2);font-size:12px">${x[0]}</strong>
+        <div style="margin-top:3px">${escapeHTML(x[1]||"—")}</div>
+      </div>
+    `).join("");
+}
+
+function renderSettings(){
+  document.getElementById("languageSelect").value=data.language;
+  document.getElementById("quickLanguage").value=data.language;
+}
+
+function setLanguage(lang){
+  data.language=lang;
+  saveData();
+  applyLanguage();
+  renderHome();
+  renderGoals();
+  renderHistory();
+  renderJournal();
+  renderSettings();
+}
+
+function applyLanguage(){
+  const map={
+    brandSub:"brandSub",
+    journeyLabel:"journeyLabel",
+    dayProgressLabel:"dayProgress",
+    overallLabel:"overall",
+    streakLabel:"streak",
+    practiceLabel:"practices",
+    todayLabel:"todayProgress",
+    practiceTitle:"practiceTitle",
+    morningName:"morning",
+    afternoonName:"afternoon",
+    eveningName:"evening",
+    morningText:"morningText",
+    afternoonText:"afternoonText",
+    eveningText:"eveningText",
+    completeTitle:"reflection",
+    completionHint:"completeHint",
+    goalsTitle:"goals",
+    goalSelectedText:"notSelected",
+    customGoalTitle:"customGoal",
+    customGoalDesc:"customDesc",
+    customGoalLabel:"yourGoal",
+    saveGoalBtn:"saveGoal",
+    historyTitle:"history",
+    historyDetails:"dailyRecords",
+    journalTitle:"journal",
+    gratitudeTab:"gratitude",
+    journalTab:"journalTab",
+    intentionTab:"intention",
+    saveJournalBtn:"save",
+    reflectionTitle:"reflectionTitle",
+    reflectionText:"reflectionText",
+    settingsTitle:"settings",
+    languageTitle:"language",
+    languageDesc:"languageDesc",
+    journeySettingsTitle:"journey",
+    journeySettingsDesc:"journeyDesc",
+    resetBtn:"reset",
+    dataTitle:"data",
+    dataDesc:"dataDesc",
+    exportBtn:"export",
+    importBtn:"import",
+    quickSettingsTitle:"quickSettings",
+    quickLanguageTitle:"language",
+    quickLanguageDesc:"switchLanguage",
+    aboutText:"about"
+  };
+
+  Object.keys(map).forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.textContent=t(map[id]);
+  });
+
+  document.getElementById("navHome").innerHTML=`<span class="nav-icon">⌂</span>${data.language==="my"?"ပင်မ":"Home"}`;
+  document.getElementById("navGoals").innerHTML=`<span class="nav-icon">✦</span>${data.language==="my"?"Goal":"Goals"}`;
+  document.getElementById("navHistory").innerHTML=`<span class="nav-icon">◷</span>${data.language==="my"?"မှတ်တမ်း":"History"}`;
+  document.getElementById("navJournal").innerHTML=`<span class="nav-icon">✎</span>${data.language==="my"?"Journal":"Journal"}`;
+  document.getElementById("navSettings").innerHTML=`<span class="nav-icon">⚙</span>${data.language==="my"?"Settings":"Settings"}`;
+
+  document.getElementById("quickLanguage").value=data.language;
+  document.getElementById("languageSelect").value=data.language;
+
+  switchJournal(journalMode);
+}
+
+function openSettings(){
+  document.getElementById("settingsModal").classList.add("show");
+  renderSettings();
+}
+
+function closeSettings(){
+  document.getElementById("settingsModal").classList.remove("show");
+}
+
+function confirmReset(){
+  if(confirm(t("resetConfirm"))){
+    data=defaultData();
+    saveData();
+    applyLanguage();
+    renderHome();
+    renderGoals();
+    renderHistory();
+    renderJournal();
+    renderSettings();
+    showPage("home");
+    toast(t("resetDone"));
   }
-);
+}
 
+function exportData(){
+  const blob=new Blob(
+    [JSON.stringify(data,null,2)],
+    {type:"application/json"}
+  );
+
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download="21-day-abundance-backup.json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(event){
+  const file=event.target.files[0];
+  if(!file) return;
+
+  const reader=new FileReader();
+
+  reader.onload=e=>{
+    try{
+      const imported=JSON.parse(e.target.result);
+
+      if(!imported.days || !imported.journals){
+        throw new Error("Invalid file");
+      }
+
+      data=Object.assign(defaultData(),imported);
+      saveData();
+
+      applyLanguage();
+      renderHome();
+      renderGoals();
+      renderHistory();
+      renderJournal();
+      renderSettings();
+
+      toast(t("saved"));
+    }catch(err){
+      toast("Invalid backup file");
+    }
+  };
+
+  reader.readAsText(file);
+  event.target.value="";
+}
+
+function escapeHTML(value){
+  return String(value)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+let toastTimer=null;
+
+function toast(message){
+  const el=document.getElementById("toast");
+  el.textContent=message;
+  el.classList.add("show");
+
+  clearTimeout(toastTimer);
+
+  toastTimer=setTimeout(()=>{
+    el.classList.remove("show");
+  },1800);
+}
+
+/* Close modal by tapping outside */
+document.getElementById("settingsModal").addEventListener("click",e=>{
+  if(e.target.id==="settingsModal") closeSettings();
+});
+
+/* Initial render */
+applyLanguage();
+renderHome();
+renderGoals();
+renderHistory();
+renderJournal();
+renderSettings();
+
+/* Keep date / UI fresh */
+setInterval(()=>{
+  document.getElementById("todayDate").textContent=formatDate();
+},60000);
 </script>
 
 </body>
 </html>
+```
